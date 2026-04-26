@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2563EB">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FinancePro">
+    <link rel="manifest" href="manifest.json">
+    <title>FinancePro - Controle Financeiro</title>
+    <style>
+        :root {
+            --p: #2563EB; --pd: #1D4ED8; --s: #059669; --d: #DC2626; --w: #EA580C;
+            --bg: #F1F5F9; --c: #fff; --t: #0F172A; --ts: #475569; --tl: #94A3B8;
+            --b: #CBD5E1; --bl: #E2E8F0; --r: 12px; --rx: 24px;
+            --input-bg: #F8FAFC; --input-t: #0F172A;
+            --menu-bg: #fff; --menu-hover: #F1F5F9; --menu-t: #0F172A;
+        }
+        [data-theme="dark"] {
+            --bg: #0F172A; --c: #1E293B; --t: #F1F5F9; --ts: #94A3B8; --tl: #64748B;
+            --b: #334155; --bl: #1E293B;
+            --input-bg: #0F172A; --input-t: #F1F5F9;
+            --menu-bg: #1E293B; --menu-hover: #334155; --menu-t: #F1F5F9;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; position: fixed; top: 0; left: 0; touch-action: manipulation; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; }
+        .app { background: var(--c); width: 100%; height: 100%; max-width: 440px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        @media (min-width: 481px) { .app { border-radius: var(--rx); box-shadow: 0 25px 50px -12px rgba(0,0,0,.15); height: 88vh; border: 1px solid var(--bl); } }
+        .top-bar { background: var(--c); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--bl); flex-shrink: 0; z-index: 6; gap: 12px; }
+        .app-title { font-size: 17px; font-weight: 600; color: var(--t); flex: 1; }
+        .app-title.editing { background: #DBEAFE; outline: 2px solid var(--p); outline-offset: 2px; border-radius: 6px; } [data-theme="dark"] .app-title.editing { background: rgba(37,99,235,.2); }
+        .app-title-input { font-size: 17px; font-weight: 600; color: var(--t); border: none; background: transparent; font-family: inherit; width: 100%; outline: none; padding: 0; }
+        .top-bar-actions { display: flex; align-items: center; gap: 8px; position: relative; }
+        .add-btn { width: 36px; height: 36px; border-radius: 10px; border: none; background: var(--p); color: #fff; font-size: 20px; cursor: pointer; transition: .2s; display: flex; align-items: center; justify-content: center; } .add-btn:hover { background: var(--pd); } .add-btn:active { transform: scale(.95); }
+        .set-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--b); background: transparent; cursor: pointer; font-size: 18px; color: var(--ts); display: flex; align-items: center; justify-content: center; transition: .2s; } .set-btn:hover { background: var(--bg); }
+        .offline-badge { position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; z-index: 100; backdrop-filter: blur(4px); display: none; pointer-events: none; }
+        .offline-badge.active { display: block; }
+        .settings-menu { display: none; position: absolute; top: 46px; right: 0; background: var(--menu-bg); border-radius: var(--r); box-shadow: 0 10px 25px rgba(0,0,0,.2); border: 1px solid var(--b); z-index: 20; min-width: 220px; overflow: hidden; } .settings-menu.active { display: block; animation: sd .15s ease; }
+        @keyframes sd { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        .settings-menu-item { padding: 13px 18px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--menu-t); border: none; background: var(--menu-bg); width: 100%; text-align: left; font-family: inherit; display: flex; align-items: center; gap: 10px; transition: .15s; } .settings-menu-item:hover { background: var(--menu-hover); }
+        .theme-submenu { display: none; background: var(--menu-bg); border-top: 1px solid var(--b); } .theme-submenu.active { display: block; }
+        .theme-sub-header { padding: 14px 18px; background: linear-gradient(135deg, #1E293B, #0F172A); border-bottom: 1px solid rgba(255,255,255,.12); display: flex; align-items: center; justify-content: space-between; } [data-theme="dark"] .theme-sub-header { background: linear-gradient(135deg, #0A0F1A, #020617); }
+        .theme-sub-header-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: #94A3B8; }
+        .theme-sub-header-current { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #F1F5F9; }
+        .theme-sub-header-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); flex-shrink: 0; } .theme-sub-header-dot.light { background: #F1F5F9; } .theme-sub-header-dot.dark { background: #1E293B; border-color: #64748B; }
+        .theme-option { padding: 13px 18px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--menu-t); border: none; background: var(--menu-bg); width: 100%; text-align: left; font-family: inherit; transition: .15s; display: flex; align-items: center; gap: 12px; } .theme-option:hover { background: var(--menu-hover); } .theme-option.active { font-weight: 600; background: rgba(37,99,235,.08); border-left: 3px solid var(--p); } [data-theme="dark"] .theme-option.active { background: rgba(37,99,235,.15); }
+        .theme-option-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--b); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; transition: .2s; color: transparent; } .theme-option.active .theme-option-check { border-color: var(--p); background: var(--p); color: #fff; }
+        .theme-option-icon { font-size: 16px; width: 22px; text-align: center; }
+        .main-header { background: linear-gradient(160deg, #1E3A5F 0%, #1E40AF 40%, #2563EB 100%); padding: 16px 20px; color: #fff; flex-shrink: 0; z-index: 5; } [data-theme="dark"] .main-header { background: linear-gradient(160deg, #0F172A 0%, #1E3A5F 40%, #1E40AF 100%); }
+        .month-selector { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .month-btn { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); color: #fff; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: .2s; flex-shrink: 0; } .month-btn:hover { background: rgba(255,255,255,.2); } .month-btn:active { transform: scale(.95); }
+        .month-display { font-size: 19px; font-weight: 700; text-align: center; padding: 6px 16px; border-radius: 10px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.1); touch-action: pan-x; }
+        .month-display.swiping-left { transform: translateX(-30px); opacity: .5; } .month-display.swiping-right { transform: translateX(30px); opacity: .5; }
+        .summary-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .summary-card { padding: 10px 6px; border-radius: var(--r); text-align: center; cursor: pointer; transition: all .3s ease; border: 2px solid transparent; } .summary-card:hover { transform: translateY(-2px); } .summary-card.active { border-color: #fff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+        .summary-card.total { background: linear-gradient(135deg, #1E40AF, #1E3A8A); }
+        .summary-card.paid { background: linear-gradient(135deg, #047857, #065F46); }
+        .summary-card.pending { background: linear-gradient(135deg, #9A3412, #7C2D12); }
+        .summary-label { font-size: 9px; color: rgba(255,255,255,.9); margin-bottom: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
+        .summary-value { font-size: 14px; font-weight: 700; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .filter-indicator { text-align: center; padding: 8px 0 4px; font-size: 11px; color: var(--p); font-weight: 600; display: none; } .filter-indicator.active { display: block; } [data-theme="dark"] .filter-indicator { color: #93C5FD; }
+        .expenses-section { flex: 1; background: var(--bg); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; position: relative; }
+        .expenses-list { padding: 12px 16px 24px; display: flex; flex-direction: column; gap: 8px; }
+        .expense-item { border-radius: var(--r); transition: all .25s ease; cursor: pointer; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.04); border: 1px solid var(--bl); min-height: 56px; background: var(--c); flex-shrink: 0; } .expense-item:hover { box-shadow: 0 4px 6px rgba(0,0,0,.06); }
+        .expense-item.paid { background: #D1FAE5; border-color: #34D399; } .expense-item.overdue { background: #FEF2F2; border-color: #FCA5A5; } .expense-item.pending { background: #F8FAFC; border-color: #CBD5E1; }
+        [data-theme="dark"] .expense-item.paid { background: #064E3B; border-color: #059669; } [data-theme="dark"] .expense-item.overdue { background: #7F1D1D; border-color: #DC2626; } [data-theme="dark"] .expense-item.pending { background: #1E293B; border-color: #334155; }
+        .expense-header { display: flex; align-items: center; padding: 14px 16px; gap: 10px; min-height: 56px; }
+        .expense-info { flex: 1; min-width: 0; }
+        .expense-name { font-weight: 600; color: var(--t); font-size: 15px; display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+        .badge { padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; flex-shrink: 0; } .badge-fixed { background: #DBEAFE; color: #1E40AF; } .badge-inst { background: #FEF3C7; color: #92400E; } [data-theme="dark"] .badge-fixed { background: rgba(37,99,235,.2); color: #93C5FD; } [data-theme="dark"] .badge-inst { background: rgba(234,179,8,.2); color: #FCD34D; }
+        .expense-date { font-size: 12px; color: var(--ts); font-weight: 500; }
+        .expense-amount { font-weight: 700; font-size: 16px; color: var(--t); flex-shrink: 0; margin-right: 4px; white-space: nowrap; }
+        .expense-check { width: 28px; height: 28px; min-width: 28px; border-radius: 8px; border: 2px solid #CBD5E1; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: .2s; color: transparent; font-weight: 700; } [data-theme="dark"] .expense-check { background: var(--c); border-color: #475569; }
+        .expense-item.paid .expense-check { background: #059669; border-color: #059669; color: #fff; } .expense-item.overdue .expense-check { border-color: #F87171; color: #DC2626; }
+        .detail-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 15; flex-direction: column; overflow-y: auto; } .detail-screen.active { display: flex; }
+        .detail-topbar { background: var(--c); padding: 12px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--bl); flex-shrink: 0; }
+        .detail-back-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--b); background: transparent; cursor: pointer; font-size: 18px; color: var(--ts); display: flex; align-items: center; justify-content: center; transition: .2s; flex-shrink: 0; } .detail-back-btn:hover { background: var(--bg); }
+        .detail-topbar-title { font-size: 17px; font-weight: 600; color: var(--t); flex: 1; }
+        .detail-card { margin: 16px; background: var(--c); border-radius: var(--r); box-shadow: 0 2px 8px rgba(0,0,0,.06); overflow: hidden; border: 1px solid var(--bl); }
+        .detail-card.paid { background: #D1FAE5; border-color: #34D399; } .detail-card.overdue { background: #FEF2F2; border-color: #FCA5A5; } [data-theme="dark"] .detail-card.paid { background: #064E3B; border-color: #059669; } [data-theme="dark"] .detail-card.overdue { background: #7F1D1D; border-color: #DC2626; }
+        .detail-card-header { display: flex; align-items: center; padding: 20px 20px 12px; gap: 12px; }
+        .detail-card-amount { font-size: 28px; font-weight: 700; color: var(--t); }
+        .detail-card-date { font-size: 13px; color: var(--ts); padding: 0 20px 16px; }
+        .detail-card-status { margin: 0 20px 16px; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .detail-card-status.paid-st { background: #A7F3D0; color: #065F46; } .detail-card-status.overdue-st { background: #FECACA; color: #991B1B; } .detail-card-status.pending-st { background: #E2E8F0; color: #475569; }
+        [data-theme="dark"] .detail-card-status.paid-st { background: #047857; color: #A7F3D0; } [data-theme="dark"] .detail-card-status.overdue-st { background: #991B1B; color: #FECACA; } [data-theme="dark"] .detail-card-status.pending-st { background: #334155; color: #94A3B8; }
+        .detail-card-divider { border: none; border-top: 1px solid var(--bl); margin: 0 20px; }
+        .detail-card-section { padding: 16px 20px; }
+        .detail-card-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--tl); margin-bottom: 8px; }
+        .detail-desc-display { font-size: 13px; color: var(--ts); line-height: 1.6; cursor: pointer; padding: 10px 14px; border-radius: 10px; background: var(--bg); transition: .15s; min-height: 40px; display: flex; align-items: center; white-space: pre-line; word-break: break-word; } .detail-desc-display:hover { background: var(--bl); } .detail-desc-display.empty { color: var(--tl); font-style: italic; }
+        .detail-desc-edit-area { display: flex; align-items: flex-start; gap: 8px; }
+        .detail-desc-textarea { flex: 1; padding: 10px 14px; border: 1.5px solid var(--p); border-radius: 10px; font-size: 13px; font-family: inherit; color: var(--t); background: var(--input-bg); resize: vertical; outline: none; min-height: 60px; line-height: 1.6; -webkit-user-select: text; user-select: text; } .detail-desc-textarea:focus { box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+        .detail-desc-save-btn { width: 44px; height: 44px; min-width: 44px; border-radius: 10px; border: none; background: var(--p); color: #fff; cursor: pointer; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: .2s; flex-shrink: 0; } .detail-desc-save-btn:hover { background: var(--pd); } .detail-desc-save-btn:active { transform: scale(.95); }
+        .detail-card-actions { display: flex; padding: 12px 20px 20px; gap: 8px; }
+        .detail-action-big { flex: 1; padding: 12px 10px; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: .2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: inherit; } .detail-action-big:active { transform: scale(.97); }
+        .detail-action-big.edit-btn { background: var(--p); color: #fff; } .detail-action-big.edit-btn:hover { background: var(--pd); }
+        .detail-action-big.pay-btn { background: #059669; color: #fff; } .detail-action-big.pay-btn:hover { background: #047857; }
+        .detail-action-big.unpay-btn { background: #D97706; color: #fff; }
+        .detail-action-big.delete-btn { background: #F1F5F9; color: var(--d); border: 1px solid var(--b); font-weight: 500; } .detail-action-big.delete-btn:hover { background: #FEE2E2; }
+        .confirm-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(8px); } .confirm-overlay.active { display: flex; }
+        .confirm-dialog { background: var(--c); border-radius: var(--rx); width: 90%; max-width: 380px; animation: fi .25s ease; box-shadow: 0 25px 60px rgba(0,0,0,.3); overflow: hidden; } @keyframes fi { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+        .confirm-header { background: linear-gradient(135deg, #1E293B, #0F172A); padding: 24px 24px 20px; text-align: center; } .confirm-footer { padding: 0 24px 20px; text-align: center; } .confirm-safety { font-size: 11px; color: var(--tl); }
+        .confirm-icon-circle { width: 56px; height: 56px; border-radius: 50%; background: rgba(239,68,68,.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px; border: 2px solid rgba(239,68,68,.3); }
+        .confirm-title { font-size: 18px; font-weight: 700; color: #F1F5F9; } .confirm-subtitle { font-size: 13px; color: #94A3B8; }
+        .confirm-body { padding: 20px 24px; } .confirm-highlight { background: #FFEDD5; border-radius: var(--r); padding: 14px 16px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px; border: 1px solid rgba(234,88,12,.15); } [data-theme="dark"] .confirm-highlight { background: rgba(234,88,12,.1); }
+        .confirm-actions { display: flex; flex-direction: column; gap: 8px; } .confirm-btn { padding: 13px 16px; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; } .confirm-btn:active { transform: scale(.97); } .confirm-btn.warning { background: var(--w); color: #fff; } .confirm-btn.danger { background: var(--d); color: #fff; } .confirm-btn.secondary { background: var(--p); color: #fff; } .confirm-btn.cancel { background: #F1F5F9; color: var(--ts); border: 1px solid var(--b); } [data-theme="dark"] .confirm-btn.cancel { background: #334155; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(6px); } .modal.active { display: flex; }
+        .modal-content { background: var(--c); border-radius: var(--rx); padding: 24px; width: 90%; max-width: 380px; animation: fi .2s ease; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); max-height: 85vh; overflow-y: auto; }
+        .modal-title { font-size: 18px; font-weight: 700; color: var(--t); margin-bottom: 20px; } .form-group { margin-bottom: 16px; } .form-label { display: block; margin-bottom: 6px; color: var(--ts); font-weight: 600; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; }
+        .form-input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--b); border-radius: 10px; font-size: 14px; transition: .2s; font-family: inherit; color: var(--input-t); background: var(--input-bg); } .form-input:focus { outline: none; border-color: var(--p); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; } .toggle-label { font-size: 14px; font-weight: 600; color: var(--t); }
+        .toggle-sw { position: relative; width: 48px; height: 26px; } .toggle-sw input { opacity: 0; } .toggle-sl { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #CBD5E1; border-radius: 26px; transition: .3s; } .toggle-sl:before { content: ""; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; } .toggle-sw input:checked + .toggle-sl { background: var(--p); } .toggle-sw input:checked + .toggle-sl:before { transform: translateX(22px); }
+        .repeat-options { display: none; background: var(--bg); border-radius: var(--r); padding: 14px; margin-top: 8px; } .repeat-options.active { display: block; }
+        .repeat-types { display: flex; gap: 8px; margin-bottom: 12px; } .repeat-type-btn { flex: 1; padding: 10px; border: 1.5px solid var(--b); border-radius: 10px; background: var(--input-bg); cursor: pointer; font-weight: 600; color: var(--ts); font-size: 13px; } .repeat-type-btn.active { background: var(--p); color: #fff; border-color: var(--p); }
+        .inst-group { display: none; margin-top: 8px; } .inst-group.active { display: block; }
+        .form-actions { display: flex; gap: 10px; margin-top: 20px; } .btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; } .btn:active { transform: scale(.97); } .btn-save { background: var(--p); color: #fff; } .btn-cancel { background: var(--bg); color: var(--ts); }
+        .empty-state { text-align: center; padding: 48px 24px; color: var(--tl); } .empty-icon { font-size: 48px; margin-bottom: 16px; } .empty-text { font-size: 16px; font-weight: 600; color: var(--ts); }
+        .about-textarea { width: 100%; min-height: 120px; padding: 12px 14px; border: 1.5px solid var(--b); border-radius: 10px; font-size: 13px; font-family: inherit; color: var(--input-t); background: var(--input-bg); resize: vertical; line-height: 1.6; }
+        .about-display { font-size: 13px; color: var(--t); line-height: 1.8; padding: 8px 0; white-space: pre-line; }
+    </style>
+</head>
+<body>
+    <div class="app" id="appContainer">
+        <div class="top-bar"><div class="app-title" id="appTitle"><span id="appTitleText">Minhas Despesas</span></div><div class="top-bar-actions"><button class="add-btn" onclick="openAddModal()">+</button><button class="set-btn" id="settingsBtn" onclick="pushState('menu');toggleSettingsMenu(event)">⚙️</button><div class="settings-menu" id="settingsMenu"><button class="settings-menu-item" onclick="toggleThemeSubmenu(event)">🎨 Temas</button><div class="theme-submenu" id="themeSubmenu"><div class="theme-sub-header"><span class="theme-sub-header-label">TEMA ATUAL</span><span class="theme-sub-header-current"><span class="theme-sub-header-dot" id="themeSubDot"></span><span id="themeSubName">Claro</span></span></div><button class="theme-option active" data-theme="light" onclick="setTheme('light')"><span class="theme-option-icon">☀️</span> Claro<span class="theme-option-check">✓</span></button><button class="theme-option" data-theme="dark" onclick="setTheme('dark')"><span class="theme-option-icon">🌙</span> Escuro<span class="theme-option-check">✓</span></button></div><button class="settings-menu-item" onclick="openAboutModal()">ℹ️ Sobre</button></div></div></div>
+        <div class="main-header" id="mainHeader"><div class="month-selector"><button class="month-btn" onclick="changeMonth(-1)">←</button><div class="month-display" id="monthDisplay"></div><button class="month-btn" onclick="changeMonth(1)">→</button></div><div class="summary-row"><div class="summary-card total" id="totalCard" onclick="setFilter('all')"><div class="summary-label">Total</div><div class="summary-value" id="totalGastos">R$ 0,00</div></div><div class="summary-card paid" id="paidCard" onclick="setFilter('paid')"><div class="summary-label">Pago</div><div class="summary-value" id="totalPago">R$ 0,00</div></div><div class="summary-card pending" id="pendingCard" onclick="setFilter('pending')"><div class="summary-label">Pendente</div><div class="summary-value" id="totalPendente">R$ 0,00</div></div></div></div>
+        <div class="filter-indicator" id="filterIndicator"><span id="filterText"></span></div>
+        <div class="expenses-section" id="expensesSection"><div class="expenses-list" id="expensesList"></div></div>
+        <div class="detail-screen" id="detailScreen"><div class="detail-topbar"><button class="detail-back-btn" onclick="closeDetailScreen()">←</button><div class="detail-topbar-title" id="detailTopTitle">Detalhes</div></div><div class="detail-card" id="detailCard"><div class="detail-card-header"><div style="flex:1"><div class="expense-name" id="detailName" style="font-size:18px"></div></div><div class="detail-card-amount" id="detailAmount"></div></div><div class="detail-card-date" id="detailDate"></div><div style="padding:0 20px 16px"><span class="detail-card-status" id="detailStatus"></span></div><hr class="detail-card-divider"><div class="detail-card-section"><div class="detail-card-section-label">Descrição</div><div id="detailDescArea"></div></div><div class="detail-card-actions" id="detailActions"></div></div></div>
+    </div>
+    <div class="confirm-overlay" id="confirmDialog"><div class="confirm-dialog"><div class="confirm-header"><div class="confirm-icon-circle" id="confirmIconCircle">🗑️</div><div class="confirm-title" id="confirmTitle"></div><div class="confirm-subtitle" id="confirmSubtitle"></div></div><div class="confirm-body"><div class="confirm-highlight"><span id="confirmMsgIcon">⚠️</span><span id="confirmMsg"></span></div><div class="confirm-actions" id="confirmActions"></div></div><div class="confirm-footer"><span class="confirm-safety">🔒 Esta ação pode ser revertida manualmente</span></div></div></div>
+    <div class="modal" id="addModal"><div class="modal-content"><h2 class="modal-title">Novo Gasto</h2><form id="expenseForm" onsubmit="addExpense(event)"><div class="form-group"><label class="form-label">Nome</label><input type="text" class="form-input" id="expenseName" required placeholder="Ex: Aluguel"></div><div class="form-group"><label class="form-label">Valor</label><input type="number" class="form-input" id="expenseValue" required step="0.01" placeholder="R$ 0,00"></div><div class="form-group"><label class="form-label">Vencimento</label><input type="date" class="form-input" id="expenseDate" required></div><div class="toggle-row"><span class="toggle-label">Repetir</span><label class="toggle-sw"><input type="checkbox" id="repeatToggle" onchange="toggleRepeat()"><span class="toggle-sl"></span></label></div><div class="repeat-options" id="repeatOptions"><label class="form-label">Tipo de repetição</label><div class="repeat-types"><button type="button" class="repeat-type-btn active" onclick="selectRepeat('fixed',this)">Fixo</button><button type="button" class="repeat-type-btn" onclick="selectRepeat('installment',this)">Parcelado</button></div><div class="inst-group" id="instGroup"><label class="form-label">Quantidade de parcelas</label><input type="number" class="form-input" id="instCount" min="2" max="100" value="2"></div></div><div class="form-actions"><button type="button" class="btn btn-cancel" onclick="goBack();closeAddModal()">Cancelar</button><button type="submit" class="btn btn-save">Salvar</button></div></form></div></div>
+    <div class="modal" id="editModal"><div class="modal-content"><h2 class="modal-title">Editar Gasto</h2><form id="editForm" onsubmit="saveEdit(event)"><input type="hidden" id="editId"><div class="form-group"><label class="form-label">Nome</label><input type="text" class="form-input" id="editName" required></div><div class="form-group"><label class="form-label">Valor</label><input type="number" class="form-input" id="editValue" required step="0.01"></div><div class="form-group"><label class="form-label">Vencimento</label><input type="date" class="form-input" id="editDate" required></div><div class="form-actions"><button type="button" class="btn btn-cancel" onclick="goBack();closeEditModal()">Cancelar</button><button type="submit" class="btn btn-save">Salvar</button></div></form></div></div>
+    <div class="modal" id="aboutModal"><div class="modal-content"><h2 class="modal-title">📋 Sobre</h2><div id="aboutDisplay" class="about-display"></div><button type="button" class="btn btn-save" style="width:100%;margin-top:16px" onclick="closeAboutModal()">Fechar</button></div></div>
+    <div class="modal" id="aboutEditModal"><div class="modal-content"><h2 class="modal-title">Editar Informações</h2><form id="aboutEditForm" onsubmit="saveAboutInfo(event)"><div class="form-group"><label class="form-label">Informações do criador</label><textarea class="about-textarea" id="aboutEditText"></textarea></div><div class="form-actions"><button type="button" class="btn btn-cancel" onclick="goBack();closeAboutEditModal()">Cancelar</button><button type="submit" class="btn btn-save">Salvar</button></div></form></div></div>
+    <div class="offline-badge" id="offlineBadge">📡 Modo Offline</div>
+<script>
+// ============================================
+// FINANCEPRO - OFFLINE PWA
+// ============================================
+
+// Registro do Service Worker para funcionamento offline
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+        console.log('Service Worker registrado com sucesso:', reg);
+    }).catch(err => {
+        console.log('Falha ao registrar Service Worker:', err);
+    });
+}
+
+// Detectar status de conexão
+function updateOnlineStatus() {
+    const badge = document.getElementById('offlineBadge');
+    if (!navigator.onLine) {
+        badge.classList.add('active');
+    } else {
+        badge.classList.remove('active');
+    }
+}
+
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
+
+// Dados offline - tudo salvo no localStorage
+// Inicialização e carregamento dos dados
+let nav=['home'],backing=false,exitClicks=0,exitTimer=null;
+function pushState(s){if(backing){backing=false;return}if(nav[nav.length-1]!==s){nav.push(s);history.pushState({appState:s},'','')}}
+function goBack(){if(nav.length>1){backing=true;nav.pop();closeAll();history.back()}}
+function closeAll(){addModal.classList.remove('active');editModal.classList.remove('active');aboutModal.classList.remove('active');aboutEditModal.classList.remove('active');confirmDialog.classList.remove('active');settingsMenu.classList.remove('active');themeSubmenu.classList.remove('active');detailScreen.classList.remove('active');resetAdd();editForm.reset();aboutEditForm.reset();update()}
+function resetAdd(){expenseForm.reset();repeatToggle.checked=false;repeatOptions.classList.remove('active');instGroup.classList.remove('active');instCount.value=2;document.querySelectorAll('#addModal .repeat-type-btn').forEach((b,i)=>b.classList.toggle('active',i===0));repeatType='fixed'}
+window.addEventListener('popstate',()=>{if(nav.length>1){backing=true;nav.pop();closeAll()}else{nav=['home'];closeAll()}});history.pushState({appState:'home'},'','');nav=['home'];
+
+let cur=new Date();
+let expenses=JSON.parse(localStorage.getItem('financepro_expenses'))||[];
+let repeatType='fixed',activeFilter='all';
+let appName=localStorage.getItem('financepro_appName')||'Minhas Despesas';
+let theme=localStorage.getItem('financepro_theme')||'light';
+// INFORMAÇÃO DO SOBRE - SALVA PERMANENTEMENTE
+let aboutInfo=localStorage.getItem('financepro_aboutInfo')||'Criado por [Nilsin L R F]\nTodos os direitos reservados © 2026\n\nV 2.0.0 (PWA - Funciona Offline!)';
+let clicks=0,clickTm=null,aboutClicks=0,aboutClickTm=null;
+
+document.documentElement.setAttribute('data-theme',theme);
+updateThemeUI();
+appTitleText.textContent=appName;
+
+function toggleRepeat(){let t=repeatToggle,o=repeatOptions;if(t.checked){o.classList.add('active');selectRepeat('fixed',document.querySelector('#addModal .repeat-type-btn:first-child'))}else{o.classList.remove('active');instGroup.classList.remove('active')}}
+function selectRepeat(t,b){repeatType=t;document.querySelectorAll('#addModal .repeat-type-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');instGroup.classList.toggle('active',t==='installment')}
+function setFilter(f){activeFilter=f;totalCard.classList.toggle('active',f==='all');paidCard.classList.toggle('active',f==='paid');pendingCard.classList.toggle('active',f==='pending');let fi=filterIndicator,ft=filterText;if(f==='all')fi.classList.remove('active');else if(f==='paid'){fi.classList.add('active');ft.textContent='📋 Mostrando: Gastos Pagos'}else{fi.classList.add('active');ft.textContent='📋 Mostrando: Gastos Pendentes'}updateExpenses()}
+
+let msX=0,msCur=0,msSwiping=false,mdEl=null,hasMoved=false;
+function setupMonthSwipe(){mdEl=document.getElementById('monthDisplay');mdEl.addEventListener('touchstart',e=>{msX=e.touches[0].clientX;msSwiping=true;hasMoved=false},{passive:true});mdEl.addEventListener('touchmove',e=>{if(!msSwiping)return;e.preventDefault();msCur=e.touches[0].clientX;let d=msCur-msX;if(Math.abs(d)>5){hasMoved=true;mdEl.style.transition='none';mdEl.classList.toggle('swiping-right',d>0);mdEl.classList.toggle('swiping-left',d<0);mdEl.style.transform=`translateX(${d*.4}px)`;mdEl.style.opacity=`${1-Math.min(Math.abs(d)/200,.5)}`}},{passive:false});mdEl.addEventListener('touchend',()=>{if(!msSwiping)return;msSwiping=false;let d=msCur-msX;mdEl.style.transition='transform .3s,opacity .3s';mdEl.style.transform='';mdEl.style.opacity='';mdEl.classList.remove('swiping-left','swiping-right');if(hasMoved&&Math.abs(d)>40){changeMonth(d>0?-1:1);if(navigator.vibrate)navigator.vibrate(15)}setTimeout(()=>{mdEl.style.transition=''},300)},{passive:true});let mx=0,md=false,moved=false;mdEl.addEventListener('mousedown',e=>{mx=e.clientX;md=true;moved=false;mdEl.style.transition='none'});document.addEventListener('mousemove',e=>{if(!md)return;let d=e.clientX-mx;if(Math.abs(d)>5){moved=true;mdEl.classList.toggle('swiping-right',d>0);mdEl.classList.toggle('swiping-left',d<0);mdEl.style.transform=`translateX(${d*.4}px)`;mdEl.style.opacity=`${1-Math.min(Math.abs(d)/200,.5)}`}});document.addEventListener('mouseup',e=>{if(!md)return;md=false;let d=e.clientX-mx;mdEl.style.transition='transform .3s,opacity .3s';mdEl.style.transform='';mdEl.style.opacity='';mdEl.classList.remove('swiping-left','swiping-right');if(moved&&Math.abs(d)>40)changeMonth(d>0?-1:1);setTimeout(()=>{mdEl.style.transition=''},300)})}
+
+document.addEventListener('click',function(e){if(!e.target.closest('#settingsBtn')&&!e.target.closest('#settingsMenu')&&settingsMenu.classList.contains('active')){settingsMenu.classList.remove('active');themeSubmenu.classList.remove('active');goBack();return}if(confirmDialog.classList.contains('active')||addModal.classList.contains('active')||editModal.classList.contains('active')||aboutModal.classList.contains('active')||aboutEditModal.classList.contains('active'))return;if(detailScreen.classList.contains('active')&&!e.target.closest('.detail-card')&&!e.target.closest('.detail-topbar')&&!e.target.closest('.detail-desc-textarea')&&!e.target.closest('.detail-desc-save-btn')){closeDetailScreen();return}if(!detailScreen.classList.contains('active')){if(!e.target.closest('.expense-item')&&!e.target.closest('.main-header')&&!e.target.closest('.top-bar')){if(nav.length<=1||nav[nav.length-1]==='home'){exitClicks++;if(exitTimer)clearTimeout(exitTimer);if(exitClicks>=2){exitClicks=0;if(navigator.app&&navigator.app.exitApp)navigator.app.exitApp();else if(window.close)window.close();else window.location.href='about:blank'}else exitTimer=setTimeout(()=>{exitClicks=0},600)}else goBack()}}});
+
+function openDetailScreen(id){pushState('detail');let exp=expenses.find(x=>x.id===id);if(!exp)return;let st=status(exp),ed=new Date(exp.date+'T00:00:00'),badge='';if(exp.type==='fixed')badge='FIXO';else if(exp.type==='installment')badge=`${exp.installmentNumber||'?'}/${exp.totalInstallments||'?'}`;detailTopTitle.textContent=exp.name+(badge?' · '+badge:'');detailName.innerHTML=exp.name+(badge?` <span class="badge ${exp.type==='fixed'?'badge-fixed':'badge-inst'}">${badge}</span>`:'');detailAmount.textContent=fmt(exp.value);detailDate.textContent='📅 Vencimento: '+ed.toLocaleDateString('pt-BR');let stEl=detailStatus;if(st==='paid'){stEl.textContent='✅ Pago';stEl.className='detail-card-status paid-st'}else if(st==='overdue'){stEl.textContent='⚠️ Vencido';stEl.className='detail-card-status overdue-st'}else{stEl.textContent='⏳ Pendente';stEl.className='detail-card-status pending-st'}let card=detailCard;card.className='detail-card';if(st==='paid')card.classList.add('paid');else if(st==='overdue')card.classList.add('overdue');let desc=exp.description||'';if(desc){detailDescArea.innerHTML=`<div class="detail-desc-display" onclick="event.stopPropagation();startDetailDesc(${exp.id})">📝 ${desc.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`}else{detailDescArea.innerHTML=`<div class="detail-desc-display empty" onclick="event.stopPropagation();startDetailDesc(${exp.id})">✏️ Toque para adicionar descrição...</div>`}let editBtn=exp.type==='one-time'?`<button class="detail-action-big edit-btn" onclick="openEditFromDetail(${exp.id})">✏️ Editar</button>`:'';let payBtn=exp.paid?`<button class="detail-action-big unpay-btn" onclick="togglePaidFromDetail(${exp.id})">↩️ Desmarcar</button>`:`<button class="detail-action-big pay-btn" onclick="togglePaidFromDetail(${exp.id})">✅ Pagar</button>`;detailActions.innerHTML=editBtn+payBtn+`<button class="detail-action-big delete-btn" onclick="delFromDetail(${exp.id})">🗑️ Excluir</button>`;detailScreen.classList.add('active')}
+function closeDetailScreen(){document.querySelectorAll('.detail-desc-textarea').forEach(ta=>{let id=parseInt(ta.id.replace('detailDescTA-',''));let exp=expenses.find(x=>x.id===id);if(exp){exp.description=ta.value.trim();}});save();detailScreen.classList.remove('active');goBack()}
+function startDetailDesc(id){let exp=expenses.find(x=>x.id===id);if(!exp)return;let current=exp.description||'';detailDescArea.innerHTML=`<div class="detail-desc-edit-area"><textarea class="detail-desc-textarea" id="detailDescTA-${id}" rows="4">${current.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea><button class="detail-desc-save-btn" onclick="event.stopPropagation();saveDetailDesc(${id})">✓</button></div>`;let ta=document.getElementById('detailDescTA-'+id);setTimeout(()=>{ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)},100)}
+function saveDetailDesc(id){let ta=document.getElementById('detailDescTA-'+id);let val=ta?ta.value.trim():'';let exp=expenses.find(x=>x.id===id);if(!exp)return;exp.description=val;save();if(val){detailDescArea.innerHTML=`<div class="detail-desc-display" onclick="event.stopPropagation();startDetailDesc(${id})">📝 ${val.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`}else{detailDescArea.innerHTML=`<div class="detail-desc-display empty" onclick="event.stopPropagation();startDetailDesc(${id})">✏️ Toque para adicionar descrição...</div>`}}
+function togglePaidFromDetail(id){let exp=expenses.find(x=>x.id===id);if(!exp)return;exp.paid=!exp.paid;save();openDetailScreen(id)}
+function openEditFromDetail(id){let exp=expenses.find(x=>x.id===id);if(!exp||exp.type!=='one-time')return;pushState('edit');detailScreen.classList.remove('active');expenses=JSON.parse(localStorage.getItem('financepro_expenses'))||[];let f=expenses.find(x=>x.id===id);if(!f)return;editId.value=f.id;editName.value=f.name;editValue.value=f.value;editDate.value=f.date;editModal.classList.add('active');update()}
+function delFromDetail(id){let exp=expenses.find(x=>x.id===id);if(!exp)return;if(exp.type==='fixed'||exp.type==='installment'){let tl=exp.type==='fixed'?'Fixo':'Parcelado';showConfirm({icon:'🗑️',title:`Excluir Gasto ${tl}`,subtitle:`"${exp.name}"`,msgIcon:'📋',msg:`"${exp.name}" é um gasto ${tl.toLowerCase()} mensal.`,actions:[{text:'Cancelar',cls:'cancel',cb:()=>{if(detailScreen.classList.contains('active'))openDetailScreen(id)}},{text:'Excluir apenas este mês',cls:'secondary',cb:()=>{expenses=expenses.filter(x=>x.id!==id);save();detailScreen.classList.remove('active');update();goBack()}},{text:'Excluir este mês e os próximos',cls:'warning',cb:()=>{let ce=expenses.find(x=>x.id===id);if(!ce)return;let cd=new Date(ce.date+'T00:00:00');expenses=expenses.filter(x=>{if(x.type===ce.type&&x.name===ce.name){let xd=new Date(x.date+'T00:00:00');return xd<cd}return true});save();detailScreen.classList.remove('active');update();goBack()}},{text:'Excluir todos os meses',cls:'danger',cb:()=>{expenses=expenses.filter(x=>!((x.type==='fixed'||x.type==='installment')&&x.name===exp.name));save();detailScreen.classList.remove('active');update();goBack()}}]})}else{showConfirm({icon:'🗑️',title:'Excluir Gasto',subtitle:`"${exp.name}"`,msgIcon:'⚠️',msg:`Excluir "${exp.name}"?`,actions:[{text:'Cancelar',cls:'cancel',cb:()=>{if(detailScreen.classList.contains('active'))openDetailScreen(id)}},{text:'Sim, excluir',cls:'danger',cb:()=>{expenses=expenses.filter(x=>x.id!==id);save();detailScreen.classList.remove('active');update();goBack()}}]})}}
+
+appTitle.addEventListener('click',function(e){if(this.classList.contains('editing'))return;clicks++;if(clickTm)clearTimeout(clickTm);if(clicks===3){clicks=0;startEditTitle()}else{clickTm=setTimeout(()=>{clicks=0},500)}});
+function startEditTitle(){let t=appTitle,tx=appTitleText;t.classList.add('editing');let inp=document.createElement('input');inp.type='text';inp.className='app-title-input';inp.value=tx.textContent;inp.id='titleInp';tx.style.display='none';t.appendChild(inp);inp.focus();inp.select();inp.addEventListener('blur',saveTitle);inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveTitle();if(e.key==='Escape')cancelTitle()})}
+function saveTitle(){let inp=document.getElementById('titleInp');if(!inp)return;appName=inp.value.trim()||'Minhas Despesas';localStorage.setItem('financepro_appName',appName);appTitleText.textContent=appName;cancelTitle()}
+function cancelTitle(){appTitleText.style.display='';appTitle.classList.remove('editing');let inp=document.getElementById('titleInp');if(inp)inp.remove()}
+
+function toggleSettingsMenu(e){e.stopPropagation();let m=settingsMenu;m.classList.toggle('active');if(!m.classList.contains('active')){themeSubmenu.classList.remove('active');goBack()}}
+function toggleThemeSubmenu(e){e.stopPropagation();themeSubmenu.classList.toggle('active');updateThemeUI()}
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('financepro_theme',t);theme=t;updateThemeUI();closeAll();nav=['home']}
+function updateThemeUI(){document.querySelectorAll('.theme-option').forEach(b=>b.classList.toggle('active',b.dataset.theme===theme));let dot=document.getElementById('themeSubDot'),name=document.getElementById('themeSubName');if(dot&&name){dot.className='theme-sub-header-dot '+(theme==='light'?'light':'dark');name.textContent=theme==='light'?'Claro':'Escuro'}}
+
+// ===== SOBRE - INFO FIXA E PERSISTENTE =====
+function openAboutModal(){
+    pushState('about');
+    settingsMenu.classList.remove('active');themeSubmenu.classList.remove('active');
+    aboutInfo=localStorage.getItem('financepro_aboutInfo')||'Criado por [Nilsin L R F]\nTodos os direitos reservados © 2026\n\nV 2.0.0 (PWA - Funciona Offline!)';
+    document.getElementById('aboutDisplay').textContent=aboutInfo;
+    aboutModal.classList.add('active');
+    aboutClicks=0;
+}
+function closeAboutModal(){aboutModal.classList.remove('active');goBack()}
+function closeAboutEditModal(){aboutEditModal.classList.remove('active')}
+document.getElementById('aboutDisplay').addEventListener('click',function(){
+    aboutClicks++;if(aboutClickTm)clearTimeout(aboutClickTm);
+    if(aboutClicks===3){aboutClicks=0;openAboutEditModal()}
+    else{aboutClickTm=setTimeout(()=>{aboutClicks=0},600)}
+});
+function openAboutEditModal(){
+    pushState('aboutEdit');
+    aboutModal.classList.remove('active');
+    aboutInfo=localStorage.getItem('financepro_aboutInfo')||'Criado por [Nilsin L R F]\nTodos os direitos reservados © 2026\n\nV 2.0.0 (PWA - Funciona Offline!)';
+    document.getElementById('aboutEditText').value=aboutInfo;
+    aboutEditModal.classList.add('active');
+}
+function saveAboutInfo(e){
+    e.preventDefault();
+    aboutInfo=document.getElementById('aboutEditText').value.trim();
+    if(!aboutInfo)aboutInfo='Criado por [Nilsin L R F]\nTodos os direitos reservados © 2026\n\nV 2.0.0 (PWA - Funciona Offline!)';
+    localStorage.setItem('financepro_aboutInfo',aboutInfo);
+    closeAboutEditModal();
+    aboutModal.classList.add('active');
+    document.getElementById('aboutDisplay').textContent=aboutInfo;
+}
+
+function save(){localStorage.setItem('financepro_expenses',JSON.stringify(expenses))}
+function fmt(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v)}
+function isLeap(y){return(y%4===0&&y%100!==0)||y%400===0}
+function febDays(y){return isLeap(y)?29:28}
+function validDay(d,y,m){if(m!==1)return d;let f=febDays(y);if(d===29)return isLeap(y)?29:28;if(d===30||d===31)return f;return d}
+function status(exp){if(exp.paid)return'paid';let t=new Date();t.setHours(0,0,0,0);let d=new Date(exp.date+'T00:00:00');d.setHours(0,0,0,0);return d<t?'overdue':'pending'}
+function showConfirm(opts){pushState('confirm');confirmIconCircle.textContent=opts.icon||'🗑️';confirmTitle.textContent=opts.title;confirmSubtitle.textContent=opts.subtitle||'';confirmMsgIcon.textContent=opts.msgIcon||'⚠️';confirmMsg.textContent=opts.msg;let ac=confirmActions;ac.innerHTML='';opts.actions.forEach(a=>{let b=document.createElement('button');b.className=`confirm-btn ${a.cls||'cancel'}`;b.textContent=a.text;b.onclick=()=>{closeConfirm();if(a.cb)a.cb();goBack()};ac.appendChild(b)});confirmDialog.classList.add('active')}
+function closeConfirm(){confirmDialog.classList.remove('active')}
+function update(){let m=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];monthDisplay.textContent=`${m[cur.getMonth()]} ${cur.getFullYear()}`;updateExpenses();updateSummary()}
+function changeMonth(d){cur.setMonth(cur.getMonth()+d);update()}
+function togglePaidList(id,e){e.stopPropagation();let exp=expenses.find(x=>x.id===id);if(exp){exp.paid=!exp.paid;save();update()}}
+function openEditModal(id,e){e.stopPropagation();let exp=expenses.find(x=>x.id===id);if(!exp||exp.type!=='one-time')return;pushState('edit');expenses=JSON.parse(localStorage.getItem('financepro_expenses'))||[];let f=expenses.find(x=>x.id===id);if(!f)return;editId.value=f.id;editName.value=f.name;editValue.value=f.value;editDate.value=f.date;editModal.classList.add('active');update()}
+function saveEdit(e){e.preventDefault();let id=parseInt(editId.value);expenses=JSON.parse(localStorage.getItem('financepro_expenses'))||[];let exp=expenses.find(x=>x.id===id);if(!exp){closeEditModal();goBack();update();return}exp.name=editName.value.trim();exp.value=parseFloat(editValue.value);exp.date=editDate.value;save();closeEditModal();goBack();update()}
+function closeEditModal(){editModal.classList.remove('active');editForm.reset()}
+function createFixed(data){let sd=new Date(data.date+'T00:00:00'),od=sd.getDate(),sy=sd.getFullYear(),sm=sd.getMonth(),bid=Date.now();for(let i=0;i<60;i++){let tm=sm+i,y=sy+Math.floor(tm/12),m=tm%12,vd=validDay(od,y,m),ds=`${y}-${String(m+1).padStart(2,'0')}-${String(vd).padStart(2,'0')}`;if(!expenses.some(x=>x.type==='fixed'&&x.name===data.name&&x.date===ds))expenses.push({id:bid+i+Math.random(),name:data.name,value:data.value,date:ds,paid:false,type:'fixed',originalDate:data.date,originalDay:od,description:''})}}
+function createInst(data,c){let sd=new Date(data.date+'T00:00:00'),od=sd.getDate(),sy=sd.getFullYear(),sm=sd.getMonth(),bid=Date.now();for(let i=0;i<c;i++){let tm=sm+i,y=sy+Math.floor(tm/12),m=tm%12,vd=validDay(od,y,m),ds=`${y}-${String(m+1).padStart(2,'0')}-${String(vd).padStart(2,'0')}`;if(!expenses.some(x=>x.type==='installment'&&x.name===data.name&&x.date===ds))expenses.push({id:bid+i+Math.random(),name:data.name,value:data.value,date:ds,paid:false,type:'installment',originalDate:data.date,originalDay:od,installmentNumber:i+1,totalInstallments:c,description:''})}}
+function addExpense(e){e.preventDefault();let data={id:Date.now(),name:expenseName.value,value:parseFloat(expenseValue.value),date:expenseDate.value,paid:false,type:'one-time',originalDate:expenseDate.value,originalDay:new Date(expenseDate.value+'T00:00:00').getDate(),description:''};if(repeatToggle.checked){if(repeatType==='fixed'){data.type='fixed';createFixed(data)}else{data.type='installment';createInst(data,Math.min(parseInt(instCount.value)||2,100))}}else{expenses.push(data)}save();closeAddModal();goBack();update()}
+function updateExpenses(){let y=cur.getFullYear(),m=cur.getMonth();expenses=JSON.parse(localStorage.getItem('financepro_expenses'))||[];let f=expenses.filter(e=>{let d=new Date(e.date+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m});if(activeFilter==='paid')f=f.filter(e=>e.paid);else if(activeFilter==='pending')f=f.filter(e=>!e.paid);f.sort((a,b)=>new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));if(f.length===0){let msg='Nenhum gasto este mês';if(activeFilter==='paid')msg='Nenhum gasto pago';else if(activeFilter==='pending')msg='Nenhum gasto pendente';expensesList.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">${msg}</div><div class="empty-sub">Toque em + para adicionar</div></div>`;return}expensesList.innerHTML=f.map(exp=>{let ed=new Date(exp.date+'T00:00:00'),st=status(exp),badge='';if(exp.type==='fixed')badge='<span class="badge badge-fixed">FIXO</span>';else if(exp.type==='installment')badge=`<span class="badge badge-inst">${exp.installmentNumber||'?'}/${exp.totalInstallments||'?'}</span>`;return `<div class="expense-item ${st}" onclick="event.stopPropagation();openDetailScreen(${exp.id})"><div class="expense-header"><div class="expense-info"><div class="expense-name">${exp.name}${badge}</div><div class="expense-date">Venc: ${ed.toLocaleDateString('pt-BR')}</div></div><div class="expense-amount">${fmt(exp.value)}</div><div class="expense-check${exp.paid?' paid':''}" onclick="event.stopPropagation();togglePaidList(${exp.id},event)">${exp.paid?'✓':(st==='overdue'?'!':'')}</div></div></div>`}).join('');updateSummary()}
+function updateSummary(){let y=cur.getFullYear(),m=cur.getMonth(),me=expenses.filter(e=>{let d=new Date(e.date+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m});totalGastos.textContent=fmt(me.reduce((s,e)=>s+e.value,0));totalPago.textContent=fmt(me.filter(e=>e.paid).reduce((s,e)=>s+e.value,0));totalPendente.textContent=fmt(me.reduce((s,e)=>s+e.value,0)-me.filter(e=>e.paid).reduce((s,e)=>s+e.value,0))}
+function openAddModal(){pushState('add');addModal.classList.add('active');expenseDate.value=new Date().toISOString().split('T')[0];resetAdd()}
+function closeAddModal(){addModal.classList.remove('active');resetAdd()}
+addModal.addEventListener('click',function(e){if(e.target===this){closeAddModal();goBack()}});editModal.addEventListener('click',function(e){if(e.target===this){closeEditModal();goBack()}});confirmDialog.addEventListener('click',function(e){if(e.target===this){closeConfirm();goBack()}});aboutModal.addEventListener('click',function(e){if(e.target===this){closeAboutModal();goBack()}});aboutEditModal.addEventListener('click',function(e){if(e.target===this){closeAboutEditModal();goBack()}});
+setupMonthSwipe();update();
+
+// Install prompt para PWA
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    setTimeout(() => {
+        if (deferredPrompt) {
+            const installBtn = document.createElement('button');
+            installBtn.className = 'settings-menu-item';
+            installBtn.innerHTML = '📲 Instalar App';
+            installBtn.onclick = () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+                    settingsMenu.classList.remove('active');
+                }
+            };
+            const menu = document.getElementById('settingsMenu');
+            const themeBtn = menu.querySelector('.settings-menu-item:first-child');
+            if (!menu.querySelector('.settings-menu-item.install-btn')) {
+                installBtn.classList.add('install-btn');
+                menu.insertBefore(installBtn, themeBtn.nextSibling);
+            }
+        }
+    }, 1000);
+});
+</script>
+</body>
+</html>
