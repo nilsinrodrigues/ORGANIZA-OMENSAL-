@@ -4,7 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FinancePro | Gestão Financeira</title>
+    <meta name="theme-color" content="#2563EB">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FinancePro">
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22FinancePro%22,%22short_name%22:%22FinancePro%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%232563EB%22,%22theme_color%22:%22%232563EB%22}">
+    <title>FinancePro | Gestão Financeira Offline</title>
     <style>
         :root {
             --p: #2563EB; --pd: #1D4ED8; --s: #059669; --d: #DC2626; --w: #EA580C;
@@ -61,7 +66,20 @@
             transform: translateX(-50%) translateY(0);
         }
         
-        /* CABEÇALHO TOTALMENTE RETO - SEM ARREDONDAMENTO */
+        .offline-banner {
+            background: #F59E0B;
+            color: #fff;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px;
+            letter-spacing: 0.5px;
+            display: none;
+        }
+        .offline-banner.active {
+            display: block;
+        }
+        
         .professional-header {
             background: var(--header-bg);
             border-bottom: 1px solid var(--header-border);
@@ -1060,7 +1078,8 @@
 </head>
 <body>
     <div class="app" id="appContainer">
-        <!-- CABEÇALHO TOTALMENTE RETO - SEM ARREDONDAMENTO -->
+        <div class="offline-banner" id="offlineBanner">⚠️ Modo Offline - Dados salvos localmente</div>
+        
         <div class="professional-header">
             <div class="header-container">
                 <div class="header-left">
@@ -1120,720 +1139,735 @@
     <div class="modal" id="aboutModal"><div class="modal-content" style="padding: 0; overflow: hidden;"><div class="about-header"><div class="about-logo">💰📊</div><div class="about-app-name">ORGANIZAÇÃO MENSAL</div><div class="about-tagline">GESTÃO FINANCEIRA INTELIGENTE</div><div class="about-divider"></div></div><div style="padding: 0 20px 24px;"><div class="about-content-card"><div class="about-info-line"><div class="about-info-icon">©️</div><div class="about-info-text"><div class="about-info-label">COPYRIGHT</div><div class="about-info-value">N.L.R.F</div></div></div><div class="about-info-line"><div class="about-info-icon">👨‍💻</div><div class="about-info-text"><div class="about-info-label">DESENVOLVEDOR</div><div class="about-info-value">N.L.R.F</div></div></div><div class="about-info-line"><div class="about-info-icon">📧</div><div class="about-info-text"><div class="about-info-label">CONTATO</div><div class="about-info-value">ideiasesolucoes.nlrf@gmail.com</div></div></div><div class="about-version">Versão 2.00 | 2026</div><div class="about-copyright">Todos Os Direitos Reservados</div></div></div><button class="btn-fechar" onclick="closeAboutModal()">Fechar</button><div style="height: 16px;"></div></div></div>
     
     <div class="modal" id="aboutEditModal"><div class="modal-content"><h2 class="modal-title">Editar Informações</h2><form id="aboutEditForm" onsubmit="saveAboutInfo(event)"><div class="form-group"><label class="form-label">Informações do criador</label><textarea class="about-textarea" id="aboutEditText"></textarea></div><div class="form-actions"><button type="button" class="btn btn-cancel" onclick="closeAboutEditModalAndGoBack()">Cancelar</button><button type="submit" class="btn btn-save">Salvar</button></div></form></div></div>
-    <input type="file" id="importFile" style="display: none" accept=".json" onchange="handleImport(event)">
 
 <script>
-// ============================================
-// FINANCEPRO - CABEÇALHO TOTALMENTE RETO
-// ============================================
-
-let activeToast = null;
-let toastTimeout = null;
-
-function showNotification(message) {
-    if (activeToast) {
-        if (toastTimeout) clearTimeout(toastTimeout);
-        activeToast.classList.remove('show');
-        setTimeout(() => {
-            if (activeToast && activeToast.parentNode) {
-                activeToast.parentNode.removeChild(activeToast);
-                activeToast = null;
-            }
-            createAndShowToast(message);
-        }, 150);
-    } else {
-        createAndShowToast(message);
+    // ============================================
+    // FINANCEPRO OFFLINE - Funciona 100% sem internet
+    // ============================================
+    
+    let isOnline = navigator.onLine;
+    const offlineBanner = document.getElementById('offlineBanner');
+    
+    function updateOnlineStatus() {
+        isOnline = navigator.onLine;
+        if (!isOnline) {
+            offlineBanner.classList.add('active');
+            showNotification('Modo offline ativado. Dados salvos localmente.');
+        } else {
+            offlineBanner.classList.remove('active');
+        }
     }
-}
-
-function createAndShowToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'toast-notification';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    activeToast = toast;
-    toast.offsetHeight;
-    toast.classList.add('show');
-    toastTimeout = setTimeout(() => {
+    
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+    
+    let activeToast = null;
+    let toastTimeout = null;
+    
+    function showNotification(message) {
         if (activeToast) {
+            if (toastTimeout) clearTimeout(toastTimeout);
             activeToast.classList.remove('show');
             setTimeout(() => {
                 if (activeToast && activeToast.parentNode) {
                     activeToast.parentNode.removeChild(activeToast);
                     activeToast = null;
                 }
-            }, 300);
-            toastTimeout = null;
+                createAndShowToast(message);
+            }, 150);
+        } else {
+            createAndShowToast(message);
         }
-    }, 2200);
-}
-
-function closeSettingsMenuOnBackground() {
-    const settingsMenu = document.getElementById('settingsMenu');
-    const themeSubmenu = document.getElementById('themeSubmenu');
-    if (settingsMenu && settingsMenu.classList.contains('active')) {
+    }
+    
+    function createAndShowToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        activeToast = toast;
+        toast.offsetHeight;
+        toast.classList.add('show');
+        toastTimeout = setTimeout(() => {
+            if (activeToast) {
+                activeToast.classList.remove('show');
+                setTimeout(() => {
+                    if (activeToast && activeToast.parentNode) {
+                        activeToast.parentNode.removeChild(activeToast);
+                        activeToast = null;
+                    }
+                }, 300);
+                toastTimeout = null;
+            }
+        }, 2200);
+    }
+    
+    function closeSettingsMenuOnBackground() {
+        const settingsMenu = document.getElementById('settingsMenu');
+        const themeSubmenu = document.getElementById('themeSubmenu');
+        if (settingsMenu && settingsMenu.classList.contains('active')) {
+            settingsMenu.classList.remove('active');
+            themeSubmenu.classList.remove('active');
+        }
+    }
+    
+    let nav=['home'],backing=false;
+    let pendingFixedData = null;
+    let currentFixedGasto = null;
+    
+    function pushState(s){if(backing){backing=false;return}if(nav[nav.length-1]!==s){nav.push(s);history.pushState({appState:s},'','')}}
+    function goBack(){if(nav.length>1){backing=true;nav.pop();closeAll();history.back()}}
+    function closeAll(){
+        addModal.classList.remove('active');
+        editModal.classList.remove('active');
+        aboutModal.classList.remove('active');
+        aboutEditModal.classList.remove('active');
+        confirmDialog.classList.remove('active');
         settingsMenu.classList.remove('active');
         themeSubmenu.classList.remove('active');
+        detailScreen.classList.remove('active');
+        dateLimitModal.classList.remove('active');
+        resetAdd();
+        editForm.reset();
+        aboutEditForm.reset();
+        update();
     }
-}
-
-let nav=['home'],backing=false;
-let pendingFixedData = null;
-let currentFixedGasto = null;
-
-function pushState(s){if(backing){backing=false;return}if(nav[nav.length-1]!==s){nav.push(s);history.pushState({appState:s},'','')}}
-function goBack(){if(nav.length>1){backing=true;nav.pop();closeAll();history.back()}}
-function closeAll(){
-    addModal.classList.remove('active');
-    editModal.classList.remove('active');
-    aboutModal.classList.remove('active');
-    aboutEditModal.classList.remove('active');
-    confirmDialog.classList.remove('active');
-    settingsMenu.classList.remove('active');
-    themeSubmenu.classList.remove('active');
-    detailScreen.classList.remove('active');
-    dateLimitModal.classList.remove('active');
-    resetAdd();
-    editForm.reset();
-    aboutEditForm.reset();
-    update();
-}
-function resetAdd(){
-    expenseForm.reset();
-    repeatToggle.checked=false;
-    repeatOptions.classList.remove('active');
-    instGroup.classList.remove('active');
-    instCount.value=2;
-    document.querySelectorAll('#addModal .repeat-type-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
-    repeatType='fixed';
-}
-window.addEventListener('popstate',()=>{if(nav.length>1){backing=true;nav.pop();closeAll()}else{nav=['home'];closeAll()}});
-history.pushState({appState:'home'},'','');
-nav=['home'];
-
-let cur=new Date();
-let expenses=JSON.parse(localStorage.getItem('financepro_expenses'))||[];
-let repeatType='fixed',activeFilter='all';
-let appName=localStorage.getItem('financepro_appName')||'MINHAS DESPESAS';
-let theme=localStorage.getItem('financepro_theme')||'light';
-let aboutInfo=localStorage.getItem('financepro_aboutInfo')||'© N.L.R.F\nDESENVOLVEDOR\nideiasesolucoes.nlrf@gmail.com\n\nVersão 2.00 | 2026';
-
-document.documentElement.setAttribute('data-theme',theme);
-updateThemeUI();
-document.getElementById('appTitleText').textContent=appName;
-
-function getExpenseStatus(exp) {
-    if (exp.paid) return 'paid';
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(exp.date + 'T00:00:00');
-    dueDate.setHours(0, 0, 0, 0);
-    
-    if (dueDate.getTime() === today.getTime()) {
-        return 'due-today';
-    } else if (dueDate < today) {
-        return 'overdue';
+    function resetAdd(){
+        expenseForm.reset();
+        repeatToggle.checked=false;
+        repeatOptions.classList.remove('active');
+        instGroup.classList.remove('active');
+        instCount.value=2;
+        document.querySelectorAll('#addModal .repeat-type-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+        repeatType='fixed';
     }
-    return 'pending';
-}
-
-function toggleRepeat(){let t=repeatToggle,o=repeatOptions;if(t.checked){o.classList.add('active');selectRepeat('fixed',document.querySelector('#addModal .repeat-type-btn:first-child'))}else{o.classList.remove('active');instGroup.classList.remove('active')}}
-function selectRepeat(t,b){repeatType=t;document.querySelectorAll('#addModal .repeat-type-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');instGroup.classList.toggle('active',t==='installment')}
-function setFilter(f){activeFilter=f;totalCard.classList.toggle('active',f==='all');paidCard.classList.toggle('active',f==='paid');pendingCard.classList.toggle('active',f==='pending');let fi=filterIndicator,ft=filterText;if(f==='all')fi.classList.remove('active');else if(f==='paid'){fi.classList.add('active');ft.textContent='Mostrando: Gastos Pagos'}else{fi.classList.add('active');ft.textContent='Mostrando: Gastos Pendentes'}updateExpenses()}
-
-function processAddExpense() {
-    const name = document.getElementById('expenseName').value.trim();
-    const value = parseFloat(document.getElementById('expenseValue').value);
-    const date = document.getElementById('expenseDate').value;
+    window.addEventListener('popstate',()=>{if(nav.length>1){backing=true;nav.pop();closeAll()}else{nav=['home'];closeAll()}});
+    history.pushState({appState:'home'},'','');
+    nav=['home'];
     
-    if (!name) { showNotification('Por favor, informe o nome do gasto'); return; }
-    if (isNaN(value) || value <= 0) { showNotification('Por favor, informe um valor válido'); return; }
-    if (!date) { showNotification('Por favor, selecione a data de vencimento'); return; }
+    let cur=new Date();
+    let expenses=JSON.parse(localStorage.getItem('financepro_expenses'))||[];
+    let repeatType='fixed',activeFilter='all';
+    let appName=localStorage.getItem('financepro_appName')||'MINHAS DESPESAS';
+    let theme=localStorage.getItem('financepro_theme')||'light';
+    let aboutInfo=localStorage.getItem('financepro_aboutInfo')||'© N.L.R.F\nDESENVOLVEDOR\nideiasesolucoes.nlrf@gmail.com\n\nVersão 2.00 | 2026';
     
-    currentFixedGasto = {
-        id: Date.now(),
-        name: name,
-        value: value,
-        date: date,
-        paid: false,
-        type: 'one-time',
-        originalDate: date,
-        originalDay: new Date(date + 'T00:00:00').getDate(),
-        description: ''
-    };
+    document.documentElement.setAttribute('data-theme',theme);
+    updateThemeUI();
+    document.getElementById('appTitleText').textContent=appName;
     
-    if (repeatToggle.checked) {
-        if (repeatType === 'fixed') {
-            closeAddModal();
-            dateLimitModal.classList.add('active');
-            pushState('dateLimit');
-            document.getElementById('dateLimitInputGroup').style.display = 'none';
-            document.getElementById('showDatePickerBtn').style.display = 'block';
-            document.getElementById('endDateLimit').value = '';
-        } else if (repeatType === 'installment') {
-            let count = parseInt(document.getElementById('instCount').value) || 2;
-            count = Math.min(600, Math.max(2, count));
-            createInstallment(currentFixedGasto, count);
+    function getExpenseStatus(exp) {
+        if (exp.paid) return 'paid';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dueDate = new Date(exp.date + 'T00:00:00');
+        dueDate.setHours(0, 0, 0, 0);
+        
+        if (dueDate.getTime() === today.getTime()) {
+            return 'due-today';
+        } else if (dueDate < today) {
+            return 'overdue';
+        }
+        return 'pending';
+    }
+    
+    function toggleRepeat(){let t=repeatToggle,o=repeatOptions;if(t.checked){o.classList.add('active');selectRepeat('fixed',document.querySelector('#addModal .repeat-type-btn:first-child'))}else{o.classList.remove('active');instGroup.classList.remove('active')}}
+    function selectRepeat(t,b){repeatType=t;document.querySelectorAll('#addModal .repeat-type-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');instGroup.classList.toggle('active',t==='installment')}
+    function setFilter(f){activeFilter=f;totalCard.classList.toggle('active',f==='all');paidCard.classList.toggle('active',f==='paid');pendingCard.classList.toggle('active',f==='pending');let fi=filterIndicator,ft=filterText;if(f==='all')fi.classList.remove('active');else if(f==='paid'){fi.classList.add('active');ft.textContent='Mostrando: Gastos Pagos'}else{fi.classList.add('active');ft.textContent='Mostrando: Gastos Pendentes'}updateExpenses()}
+    
+    function processAddExpense() {
+        const name = document.getElementById('expenseName').value.trim();
+        const value = parseFloat(document.getElementById('expenseValue').value);
+        const date = document.getElementById('expenseDate').value;
+        
+        if (!name) { showNotification('Por favor, informe o nome do gasto'); return; }
+        if (isNaN(value) || value <= 0) { showNotification('Por favor, informe um valor válido'); return; }
+        if (!date) { showNotification('Por favor, selecione a data de vencimento'); return; }
+        
+        currentFixedGasto = {
+            id: Date.now(),
+            name: name,
+            value: value,
+            date: date,
+            paid: false,
+            type: 'one-time',
+            originalDate: date,
+            originalDay: new Date(date + 'T00:00:00').getDate(),
+            description: ''
+        };
+        
+        if (repeatToggle.checked) {
+            if (repeatType === 'fixed') {
+                closeAddModal();
+                dateLimitModal.classList.add('active');
+                pushState('dateLimit');
+                document.getElementById('dateLimitInputGroup').style.display = 'none';
+                document.getElementById('showDatePickerBtn').style.display = 'block';
+                document.getElementById('endDateLimit').value = '';
+            } else if (repeatType === 'installment') {
+                let count = parseInt(document.getElementById('instCount').value) || 2;
+                count = Math.min(600, Math.max(2, count));
+                createInstallment(currentFixedGasto, count);
+                save();
+                closeAddModal();
+                goBack();
+                update();
+                showNotification('Gasto parcelado adicionado com sucesso');
+                currentFixedGasto = null;
+            }
+        } else {
+            expenses.push(currentFixedGasto);
             save();
             closeAddModal();
             goBack();
             update();
-            showNotification('Gasto parcelado adicionado com sucesso');
+            showNotification('Gasto adicionado com sucesso');
             currentFixedGasto = null;
         }
-    } else {
-        expenses.push(currentFixedGasto);
-        save();
-        closeAddModal();
-        goBack();
-        update();
-        showNotification('Gasto adicionado com sucesso');
-        currentFixedGasto = null;
-    }
-}
-
-document.getElementById('indefiniteBtn').onclick = function() {
-    if (currentFixedGasto) {
-        createFixed(currentFixedGasto, 2100);
-        save();
-        closeDateLimitModal();
-        goBack();
-        update();
-        showNotification('Gasto fixo indeterminado adicionado');
-        currentFixedGasto = null;
-    } else {
-        showNotification('Erro: dados do gasto não encontrados');
-        closeDateLimitModal();
-        goBack();
-    }
-};
-
-document.getElementById('confirmEndDateBtn').onclick = function() {
-    const endDateStr = document.getElementById('endDateLimit').value;
-    if (!endDateStr) {
-        showNotification('Selecione uma data limite');
-        return;
-    }
-    if (!currentFixedGasto) {
-        showNotification('Erro: dados do gasto não encontrados');
-        closeDateLimitModal();
-        goBack();
-        return;
-    }
-    const endDate = new Date(endDateStr + 'T00:00:00');
-    const startDate = new Date(currentFixedGasto.date + 'T00:00:00');
-    if (endDate < startDate) {
-        showNotification('A data limite deve ser posterior à data de início');
-        return;
-    }
-    const endYear = endDate.getFullYear();
-    if (endYear > 2100) {
-        showNotification('A data limite não pode ultrapassar o ano 2100');
-        return;
     }
     
-    createFixed(currentFixedGasto, endYear);
-    save();
-    closeDateLimitModal();
-    goBack();
-    update();
-    showNotification('Gasto fixo com data limite adicionado');
-    currentFixedGasto = null;
-};
-
-document.getElementById('showDatePickerBtn').onclick = function() {
-    document.getElementById('dateLimitInputGroup').style.display = 'block';
-    this.style.display = 'none';
-};
-
-document.getElementById('backToOptionsBtn').onclick = function() {
-    document.getElementById('dateLimitInputGroup').style.display = 'none';
-    document.getElementById('showDatePickerBtn').style.display = 'block';
-};
-
-document.getElementById('cancelFixedBtn').onclick = function() {
-    closeDateLimitModal();
-    goBack();
-    currentFixedGasto = null;
-};
-
-function closeDateLimitModal() {
-    dateLimitModal.classList.remove('active');
-}
-
-function createFixed(data, maxYear) {
-    let sd = new Date(data.date + 'T00:00:00');
-    let od = sd.getDate();
-    let sy = sd.getFullYear();
-    let sm = sd.getMonth();
-    let bid = data.id;
-    let maxMonths = (maxYear - sy) * 12 + (11 - sm);
-    if (maxMonths > 600) maxMonths = 600;
+    document.getElementById('indefiniteBtn').onclick = function() {
+        if (currentFixedGasto) {
+            createFixed(currentFixedGasto, 2100);
+            save();
+            closeDateLimitModal();
+            goBack();
+            update();
+            showNotification('Gasto fixo indeterminado adicionado');
+            currentFixedGasto = null;
+        } else {
+            showNotification('Erro: dados do gasto não encontrados');
+            closeDateLimitModal();
+            goBack();
+        }
+    };
     
-    for (let i = 0; i <= maxMonths; i++) {
-        let tm = sm + i;
-        let y = sy + Math.floor(tm / 12);
-        let m = tm % 12;
-        let vd = validDay(od, y, m);
-        let ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(vd).padStart(2, '0')}`;
+    document.getElementById('confirmEndDateBtn').onclick = function() {
+        const endDateStr = document.getElementById('endDateLimit').value;
+        if (!endDateStr) {
+            showNotification('Selecione uma data limite');
+            return;
+        }
+        if (!currentFixedGasto) {
+            showNotification('Erro: dados do gasto não encontrados');
+            closeDateLimitModal();
+            goBack();
+            return;
+        }
+        const endDate = new Date(endDateStr + 'T00:00:00');
+        const startDate = new Date(currentFixedGasto.date + 'T00:00:00');
+        if (endDate < startDate) {
+            showNotification('A data limite deve ser posterior à data de início');
+            return;
+        }
+        const endYear = endDate.getFullYear();
+        if (endYear > 2100) {
+            showNotification('A data limite não pode ultrapassar o ano 2100');
+            return;
+        }
         
-        if (!expenses.some(x => x.type === 'fixed' && x.name === data.name && x.date === ds)) {
-            expenses.push({
-                id: bid + i + Math.random(),
-                name: data.name,
-                value: data.value,
-                date: ds,
-                paid: false,
-                type: 'fixed',
-                originalDate: data.date,
-                originalDay: od,
-                description: data.description || ''
-            });
+        createFixed(currentFixedGasto, endYear);
+        save();
+        closeDateLimitModal();
+        goBack();
+        update();
+        showNotification('Gasto fixo com data limite adicionado');
+        currentFixedGasto = null;
+    };
+    
+    document.getElementById('showDatePickerBtn').onclick = function() {
+        document.getElementById('dateLimitInputGroup').style.display = 'block';
+        this.style.display = 'none';
+    };
+    
+    document.getElementById('backToOptionsBtn').onclick = function() {
+        document.getElementById('dateLimitInputGroup').style.display = 'none';
+        document.getElementById('showDatePickerBtn').style.display = 'block';
+    };
+    
+    document.getElementById('cancelFixedBtn').onclick = function() {
+        closeDateLimitModal();
+        goBack();
+        currentFixedGasto = null;
+    };
+    
+    function closeDateLimitModal() {
+        dateLimitModal.classList.remove('active');
+    }
+    
+    function createFixed(data, maxYear) {
+        let sd = new Date(data.date + 'T00:00:00');
+        let od = sd.getDate();
+        let sy = sd.getFullYear();
+        let sm = sd.getMonth();
+        let bid = data.id;
+        let maxMonths = (maxYear - sy) * 12 + (11 - sm);
+        if (maxMonths > 600) maxMonths = 600;
+        
+        for (let i = 0; i <= maxMonths; i++) {
+            let tm = sm + i;
+            let y = sy + Math.floor(tm / 12);
+            let m = tm % 12;
+            let vd = validDay(od, y, m);
+            let ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(vd).padStart(2, '0')}`;
+            
+            if (!expenses.some(x => x.type === 'fixed' && x.name === data.name && x.date === ds)) {
+                expenses.push({
+                    id: bid + i + Math.random(),
+                    name: data.name,
+                    value: data.value,
+                    date: ds,
+                    paid: false,
+                    type: 'fixed',
+                    originalDate: data.date,
+                    originalDay: od,
+                    description: data.description || ''
+                });
+            }
         }
     }
-}
-
-function createInstallment(data, count) {
-    let sd = new Date(data.date + 'T00:00:00');
-    let od = sd.getDate();
-    let sy = sd.getFullYear();
-    let sm = sd.getMonth();
-    let bid = data.id;
-    for (let i = 0; i < count; i++) {
-        let tm = sm + i;
-        let y = sy + Math.floor(tm / 12);
-        let m = tm % 12;
-        let vd = validDay(od, y, m);
-        let ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(vd).padStart(2, '0')}`;
-        if (!expenses.some(x => x.type === 'installment' && x.name === data.name && x.date === ds)) {
-            expenses.push({
-                id: bid + i + Math.random(),
-                name: data.name,
-                value: data.value,
-                date: ds,
-                paid: false,
-                type: 'installment',
-                originalDate: data.date,
-                originalDay: od,
-                installmentNumber: i + 1,
-                totalInstallments: count,
-                description: data.description || ''
-            });
+    
+    function createInstallment(data, count) {
+        let sd = new Date(data.date + 'T00:00:00');
+        let od = sd.getDate();
+        let sy = sd.getFullYear();
+        let sm = sd.getMonth();
+        let bid = data.id;
+        for (let i = 0; i < count; i++) {
+            let tm = sm + i;
+            let y = sy + Math.floor(tm / 12);
+            let m = tm % 12;
+            let vd = validDay(od, y, m);
+            let ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(vd).padStart(2, '0')}`;
+            if (!expenses.some(x => x.type === 'installment' && x.name === data.name && x.date === ds)) {
+                expenses.push({
+                    id: bid + i + Math.random(),
+                    name: data.name,
+                    value: data.value,
+                    date: ds,
+                    paid: false,
+                    type: 'installment',
+                    originalDate: data.date,
+                    originalDay: od,
+                    installmentNumber: i + 1,
+                    totalInstallments: count,
+                    description: data.description || ''
+                });
+            }
         }
     }
-}
-
-function validDay(d,y,m){
-    if(m!==1) return d;
-    let isLeap = (y%4===0 && y%100!==0) || y%400===0;
-    let febDays = isLeap ? 29 : 28;
-    if(d===29) return isLeap ? 29 : 28;
-    if(d===30 || d===31) return febDays;
-    return d;
-}
-
-let pendingMonthChange = 0;
-let isAnimating = false;
-
-function applyMonthChangeImmediately() {
-    if (pendingMonthChange === 0) { isAnimating = false; return; }
-    const delta = pendingMonthChange;
-    pendingMonthChange = 0;
-    const monthDisplay = document.getElementById('monthDisplay');
-    const isNext = delta > 0;
-    if (isNext) { monthDisplay.classList.add('transition-out-next'); } 
-    else { monthDisplay.classList.add('transition-out-prev'); }
-    setTimeout(() => {
-        cur.setMonth(cur.getMonth() + delta);
-        const m = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-        monthDisplay.textContent = `${m[cur.getMonth()]} ${cur.getFullYear()}`;
-        monthDisplay.classList.remove(isNext ? 'transition-out-next' : 'transition-out-prev');
-        if (isNext) { monthDisplay.classList.add('transition-in-next'); } 
-        else { monthDisplay.classList.add('transition-in-prev'); }
-        updateExpenses();
-        updateSummary();
+    
+    function validDay(d,y,m){
+        if(m!==1) return d;
+        let isLeap = (y%4===0 && y%100!==0) || y%400===0;
+        let febDays = isLeap ? 29 : 28;
+        if(d===29) return isLeap ? 29 : 28;
+        if(d===30 || d===31) return febDays;
+        return d;
+    }
+    
+    let pendingMonthChange = 0;
+    let isAnimating = false;
+    
+    function applyMonthChangeImmediately() {
+        if (pendingMonthChange === 0) { isAnimating = false; return; }
+        const delta = pendingMonthChange;
+        pendingMonthChange = 0;
+        const monthDisplay = document.getElementById('monthDisplay');
+        const isNext = delta > 0;
+        if (isNext) { monthDisplay.classList.add('transition-out-next'); } 
+        else { monthDisplay.classList.add('transition-out-prev'); }
         setTimeout(() => {
-            monthDisplay.classList.remove(isNext ? 'transition-in-next' : 'transition-in-prev');
-            isAnimating = false;
-            if (pendingMonthChange !== 0) { applyMonthChangeImmediately(); }
-        }, 200);
-    }, 120);
-}
-
-function queueMonthChange(delta) {
-    pendingMonthChange += delta;
-    if (!isAnimating) { isAnimating = true; applyMonthChangeImmediately(); }
-}
-
-document.getElementById('prevMonthBtn').addEventListener('click', (e) => { e.stopPropagation(); queueMonthChange(-1); if (navigator.vibrate) navigator.vibrate(10); });
-document.getElementById('nextMonthBtn').addEventListener('click', (e) => { e.stopPropagation(); queueMonthChange(1); if (navigator.vibrate) navigator.vibrate(10); });
-
-function setupMonthSwipe(){
-    let mdEl=document.getElementById('monthDisplay');
-    let msX=0,msCur=0,msSwiping=false,hasMoved=false;
-    mdEl.addEventListener('touchstart',e=>{msX=e.touches[0].clientX;msSwiping=true;hasMoved=false},{passive:true});
-    mdEl.addEventListener('touchmove',e=>{if(!msSwiping)return;e.preventDefault();msCur=e.touches[0].clientX;let d=msCur-msX;if(Math.abs(d)>5){hasMoved=true;mdEl.style.transition='none';mdEl.style.transform=`translateX(${d*.4}px)`;mdEl.style.opacity=`${1-Math.min(Math.abs(d)/200,.5)}`}},{passive:false});
-    mdEl.addEventListener('touchend',()=>{if(!msSwiping)return;msSwiping=false;let d=msCur-msX;mdEl.style.transition='transform .2s,opacity .15s';mdEl.style.transform='';mdEl.style.opacity='';if(hasMoved&&Math.abs(d)>40){queueMonthChange(d>0?-1:1);if(navigator.vibrate)navigator.vibrate(15)}setTimeout(()=>{mdEl.style.transition=''},200)},{passive:true});
-}
-
-function closeDetailAndGoBack() {
-    document.querySelectorAll('.detail-desc-textarea').forEach(ta=>{
-        let id = parseInt(ta.id.replace('detailDescTA-',''));
+            cur.setMonth(cur.getMonth() + delta);
+            const m = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+            monthDisplay.textContent = `${m[cur.getMonth()]} ${cur.getFullYear()}`;
+            monthDisplay.classList.remove(isNext ? 'transition-out-next' : 'transition-out-prev');
+            if (isNext) { monthDisplay.classList.add('transition-in-next'); } 
+            else { monthDisplay.classList.add('transition-in-prev'); }
+            updateExpenses();
+            updateSummary();
+            setTimeout(() => {
+                monthDisplay.classList.remove(isNext ? 'transition-in-next' : 'transition-in-prev');
+                isAnimating = false;
+                if (pendingMonthChange !== 0) { applyMonthChangeImmediately(); }
+            }, 200);
+        }, 120);
+    }
+    
+    function queueMonthChange(delta) {
+        pendingMonthChange += delta;
+        if (!isAnimating) { isAnimating = true; applyMonthChangeImmediately(); }
+    }
+    
+    document.getElementById('prevMonthBtn').addEventListener('click', (e) => { e.stopPropagation(); queueMonthChange(-1); if (navigator.vibrate) navigator.vibrate(10); });
+    document.getElementById('nextMonthBtn').addEventListener('click', (e) => { e.stopPropagation(); queueMonthChange(1); if (navigator.vibrate) navigator.vibrate(10); });
+    
+    function setupMonthSwipe(){
+        let mdEl=document.getElementById('monthDisplay');
+        let msX=0,msCur=0,msSwiping=false,hasMoved=false;
+        mdEl.addEventListener('touchstart',e=>{msX=e.touches[0].clientX;msSwiping=true;hasMoved=false},{passive:true});
+        mdEl.addEventListener('touchmove',e=>{if(!msSwiping)return;e.preventDefault();msCur=e.touches[0].clientX;let d=msCur-msX;if(Math.abs(d)>5){hasMoved=true;mdEl.style.transition='none';mdEl.style.transform=`translateX(${d*.4}px)`;mdEl.style.opacity=`${1-Math.min(Math.abs(d)/200,.5)}`}},{passive:false});
+        mdEl.addEventListener('touchend',()=>{if(!msSwiping)return;msSwiping=false;let d=msCur-msX;mdEl.style.transition='transform .2s,opacity .15s';mdEl.style.transform='';mdEl.style.opacity='';if(hasMoved&&Math.abs(d)>40){queueMonthChange(d>0?-1:1);if(navigator.vibrate)navigator.vibrate(15)}setTimeout(()=>{mdEl.style.transition=''},200)},{passive:true});
+    }
+    
+    function closeDetailAndGoBack() {
+        document.querySelectorAll('.detail-desc-textarea').forEach(ta=>{
+            let id = parseInt(ta.id.replace('detailDescTA-',''));
+            let exp = expenses.find(x=>x.id===id);
+            if(exp){
+                exp.description = ta.value.trim();
+            }
+        });
+        save();
+        detailScreen.classList.remove('active');
+        goBack();
+    }
+    
+    function openDetailScreen(id){
+        pushState('detail');
+        let exp = expenses.find(x=>x.id===id);
+        if(!exp) return;
+        
+        let st = getExpenseStatus(exp);
+        let ed = new Date(exp.date + 'T00:00:00');
+        let badge = '';
+        if(exp.type==='fixed') badge = 'FIXO';
+        else if(exp.type==='installment') badge = `${exp.installmentNumber||'?'}/${exp.totalInstallments||'?'}`;
+        
+        detailTopTitle.textContent = exp.name + (badge ? ' · '+badge : '');
+        detailName.innerHTML = exp.name + (badge ? ` <span class="badge ${exp.type==='fixed'?'badge-fixed':'badge-inst'}">${badge}</span>` : '');
+        detailAmount.textContent = fmt(exp.value);
+        detailDate.textContent = 'Vencimento: ' + ed.toLocaleDateString('pt-BR');
+        
+        let stEl = detailStatus;
+        if(st === 'paid'){
+            stEl.textContent = 'Pago';
+            stEl.className = 'detail-card-status paid-st';
+        } else if(st === 'overdue'){
+            stEl.textContent = 'Vencido';
+            stEl.className = 'detail-card-status overdue-st';
+        } else if(st === 'due-today'){
+            stEl.textContent = 'Vence hoje';
+            stEl.className = 'detail-card-status due-today-st';
+        } else {
+            stEl.textContent = 'Pendente';
+            stEl.className = 'detail-card-status pending-st';
+        }
+        
+        let desc = exp.description || '';
+        if(desc){
+            detailDescArea.innerHTML = `<div class="detail-desc-display" onclick="event.stopPropagation();startDetailDesc(${exp.id})">${escapeHtml(desc)}</div>`;
+        } else {
+            detailDescArea.innerHTML = `<div class="detail-desc-display empty" onclick="event.stopPropagation();startDetailDesc(${exp.id})">Toque para adicionar descrição</div>`;
+        }
+        
+        let editBtn = exp.type==='one-time' ? `<button class="detail-action-big edit-btn" onclick="openEditFromDetail(${exp.id})">Editar</button>` : '';
+        let payBtn = exp.paid ? 
+            `<button class="detail-action-big unpay-btn" onclick="togglePaidAndClose(${exp.id})">Desmarcar</button>` : 
+            `<button class="detail-action-big pay-btn" onclick="togglePaidAndClose(${exp.id})">Pagar</button>`;
+        
+        detailActions.innerHTML = editBtn + payBtn + `<button class="detail-action-big delete-btn" onclick="delFromDetail(${exp.id})">Excluir</button>`;
+        detailScreen.classList.add('active');
+    }
+    
+    function togglePaidAndClose(id){
         let exp = expenses.find(x=>x.id===id);
         if(exp){
-            exp.description = ta.value.trim();
-        }
-    });
-    save();
-    detailScreen.classList.remove('active');
-    goBack();
-}
-
-function openDetailScreen(id){
-    pushState('detail');
-    let exp = expenses.find(x=>x.id===id);
-    if(!exp) return;
-    
-    let st = getExpenseStatus(exp);
-    let ed = new Date(exp.date + 'T00:00:00');
-    let badge = '';
-    if(exp.type==='fixed') badge = 'FIXO';
-    else if(exp.type==='installment') badge = `${exp.installmentNumber||'?'}/${exp.totalInstallments||'?'}`;
-    
-    detailTopTitle.textContent = exp.name + (badge ? ' · '+badge : '');
-    detailName.innerHTML = exp.name + (badge ? ` <span class="badge ${exp.type==='fixed'?'badge-fixed':'badge-inst'}">${badge}</span>` : '');
-    detailAmount.textContent = fmt(exp.value);
-    detailDate.textContent = 'Vencimento: ' + ed.toLocaleDateString('pt-BR');
-    
-    let stEl = detailStatus;
-    if(st === 'paid'){
-        stEl.textContent = 'Pago';
-        stEl.className = 'detail-card-status paid-st';
-    } else if(st === 'overdue'){
-        stEl.textContent = 'Vencido';
-        stEl.className = 'detail-card-status overdue-st';
-    } else if(st === 'due-today'){
-        stEl.textContent = 'Vence hoje';
-        stEl.className = 'detail-card-status due-today-st';
-    } else {
-        stEl.textContent = 'Pendente';
-        stEl.className = 'detail-card-status pending-st';
-    }
-    
-    let desc = exp.description || '';
-    if(desc){
-        detailDescArea.innerHTML = `<div class="detail-desc-display" onclick="event.stopPropagation();startDetailDesc(${exp.id})">${escapeHtml(desc)}</div>`;
-    } else {
-        detailDescArea.innerHTML = `<div class="detail-desc-display empty" onclick="event.stopPropagation();startDetailDesc(${exp.id})">Toque para adicionar descrição</div>`;
-    }
-    
-    let editBtn = exp.type==='one-time' ? `<button class="detail-action-big edit-btn" onclick="openEditFromDetail(${exp.id})">Editar</button>` : '';
-    let payBtn = exp.paid ? 
-        `<button class="detail-action-big unpay-btn" onclick="togglePaidAndClose(${exp.id})">Desmarcar</button>` : 
-        `<button class="detail-action-big pay-btn" onclick="togglePaidAndClose(${exp.id})">Pagar</button>`;
-    
-    detailActions.innerHTML = editBtn + payBtn + `<button class="detail-action-big delete-btn" onclick="delFromDetail(${exp.id})">Excluir</button>`;
-    detailScreen.classList.add('active');
-}
-
-function togglePaidAndClose(id){
-    let exp = expenses.find(x=>x.id===id);
-    if(exp){
-        exp.paid = !exp.paid;
-        save();
-        update();
-        showNotification(exp.paid ? 'Gasto marcado como pago' : 'Pagamento desmarcado');
-        closeDetailAndGoBack();
-    }
-}
-
-function startDetailDesc(id){
-    let exp = expenses.find(x=>x.id===id);
-    if(!exp) return;
-    let current = exp.description || '';
-    detailDescArea.innerHTML = `<div class="detail-desc-edit-area">
-        <textarea class="detail-desc-textarea" id="detailDescTA-${id}" rows="4">${escapeHtml(current)}</textarea>
-        <button class="detail-desc-save-btn" onclick="event.stopPropagation();saveDetailDescAndClose(${id})">✓</button>
-    </div>`;
-    let ta = document.getElementById('detailDescTA-'+id);
-    setTimeout(()=>{
-        ta.focus();
-        ta.setSelectionRange(ta.value.length, ta.value.length);
-    },100);
-}
-
-function saveDetailDescAndClose(id){
-    let ta = document.getElementById('detailDescTA-'+id);
-    let val = ta ? ta.value.trim() : '';
-    let exp = expenses.find(x=>x.id===id);
-    if(exp){
-        exp.description = val;
-        save();
-        if(val){
-            detailDescArea.innerHTML = `<div class="detail-desc-display" onclick="event.stopPropagation();startDetailDesc(${id})">${escapeHtml(val)}</div>`;
-        } else {
-            detailDescArea.innerHTML = `<div class="detail-desc-display empty" onclick="event.stopPropagation();startDetailDesc(${id})">Toque para adicionar descrição</div>`;
-        }
-        showNotification('Descrição salva');
-        setTimeout(() => {
+            exp.paid = !exp.paid;
+            save();
+            update();
+            showNotification(exp.paid ? 'Gasto marcado como pago' : 'Pagamento desmarcado');
             closeDetailAndGoBack();
-        }, 500);
-    }
-}
-
-function openEditFromDetail(id){
-    let exp = expenses.find(x=>x.id===id);
-    if(!exp || exp.type!=='one-time') return;
-    pushState('edit');
-    detailScreen.classList.remove('active');
-    let f = expenses.find(x=>x.id===id);
-    if(!f) return;
-    editId.value = f.id;
-    editName.value = f.name;
-    editValue.value = f.value;
-    editDate.value = f.date;
-    editModal.classList.add('active');
-    update();
-}
-
-function delFromDetail(id){
-    let exp = expenses.find(x=>x.id===id);
-    if(!exp) return;
-    if(exp.type==='fixed' || exp.type==='installment'){
-        let tl = exp.type==='fixed' ? 'Fixo' : 'Parcelado';
-        showConfirm({
-            icon:'🗑️',
-            title:`Excluir Gasto ${tl}`,
-            subtitle:`"${exp.name}"`,
-            msgIcon:'',
-            msg:`"${exp.name}" é um gasto ${tl.toLowerCase()} mensal.`,
-            actions:[
-                {text:'Cancelar', cls:'cancel', cb:()=>{}},
-                {text:'Excluir apenas este mês', cls:'secondary', cb:()=>{
-                    expenses = expenses.filter(x=>x.id!==id);
-                    save();
-                    closeDetailAndGoBack();
-                    update();
-                    showNotification('Gasto removido (apenas este mês)');
-                }},
-                {text:'Excluir este mês e os próximos', cls:'warning', cb:()=>{
-                    let ce = expenses.find(x=>x.id===id);
-                    if(!ce) return;
-                    let cd = new Date(ce.date + 'T00:00:00');
-                    expenses = expenses.filter(x=>{
-                        if(x.type===ce.type && x.name===ce.name){
-                            let xd = new Date(x.date + 'T00:00:00');
-                            return xd < cd;
-                        }
-                        return true;
-                    });
-                    save();
-                    closeDetailAndGoBack();
-                    update();
-                    showNotification('Gastos futuros removidos');
-                }},
-                {text:'Excluir todos os meses', cls:'danger', cb:()=>{
-                    expenses = expenses.filter(x=>!((x.type==='fixed' || x.type==='installment') && x.name===exp.name));
-                    save();
-                    closeDetailAndGoBack();
-                    update();
-                    showNotification('Todos os gastos removidos');
-                }}
-            ]
-        });
-    } else {
-        showConfirm({
-            icon:'🗑️',
-            title:'Excluir Gasto',
-            subtitle:`"${exp.name}"`,
-            msgIcon:'',
-            msg:`Excluir "${exp.name}"?`,
-            actions:[
-                {text:'Cancelar', cls:'cancel', cb:()=>{}},
-                {text:'Sim, excluir', cls:'danger', cb:()=>{
-                    expenses = expenses.filter(x=>x.id!==id);
-                    save();
-                    closeDetailAndGoBack();
-                    update();
-                    showNotification('Gasto removido');
-                }}
-            ]
-        });
-    }
-}
-
-document.getElementById('detailBackBtn').onclick = function() {
-    closeDetailAndGoBack();
-};
-
-detailScreen.addEventListener('click', function(e) {
-    if(e.target === detailScreen || e.target.classList.contains('detail-screen')) {
-        closeDetailAndGoBack();
-    }
-});
-
-let clicks=0,clickTm=null;
-const appTitleDiv = document.getElementById('appTitle');
-const appTitleSpan = document.getElementById('appTitleText');
-appTitleDiv.addEventListener('click',function(e){if(this.classList.contains('editing'))return;clicks++;if(clickTm)clearTimeout(clickTm);if(clicks===3){clicks=0;startEditTitle()}else{clickTm=setTimeout(()=>{clicks=0},500)}});
-function startEditTitle(){
-    let t=appTitleDiv;
-    let txSpan=appTitleSpan;
-    t.classList.add('editing');
-    let inp=document.createElement('input');
-    inp.type='text';
-    inp.className='app-title-input';
-    inp.value=txSpan.textContent;
-    inp.id='titleInp';
-    txSpan.style.display='none';
-    t.appendChild(inp);
-    inp.focus();
-    inp.select();
-    inp.addEventListener('blur',saveTitle);
-    inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveTitle();if(e.key==='Escape')cancelTitle()});
-}
-function saveTitle(){
-    let inp=document.getElementById('titleInp');
-    if(!inp)return;
-    let newTitle = inp.value.trim().toUpperCase() || 'MINHAS DESPESAS';
-    appName = newTitle;
-    localStorage.setItem('financepro_appName',appName);
-    appTitleSpan.textContent=appName;
-    cancelTitle();
-    showNotification('Título alterado');
-}
-function cancelTitle(){
-    appTitleSpan.style.display='';
-    appTitleDiv.classList.remove('editing');
-    let inp=document.getElementById('titleInp');
-    if(inp)inp.remove();
-}
-
-function toggleSettingsMenu(e){
-    e.stopPropagation();
-    let m=settingsMenu;
-    let ts=themeSubmenu;
-    if(m.classList.contains('active')){
-        m.classList.remove('active');
-        ts.classList.remove('active');
-    } else {
-        m.classList.add('active');
-    }
-}
-function toggleThemeSubmenu(e){
-    e.stopPropagation();
-    themeSubmenu.classList.toggle('active');
-    updateThemeUI();
-}
-function setTheme(t){
-    document.documentElement.setAttribute('data-theme',t);
-    localStorage.setItem('financepro_theme',t);
-    theme=t;
-    updateThemeUI();
-    closeAll();
-    nav=['home'];
-    showNotification(`Tema alterado para ${t==='light'?'Claro':'Escuro'}`);
-}
-function updateThemeUI(){
-    document.querySelectorAll('.theme-option').forEach(b=>b.classList.toggle('active',b.dataset.theme===theme));
-    let dot=document.getElementById('themeSubDot'),name=document.getElementById('themeSubName');
-    if(dot&&name){
-        dot.className='theme-sub-header-dot '+(theme==='light'?'light':'dark');
-        name.textContent=theme==='light'?'Claro':'Escuro';
-    }
-}
-
-let aboutClicks=0,aboutClickTm=null;
-function openAboutModal(){
-    pushState('about');
-    settingsMenu.classList.remove('active');
-    themeSubmenu.classList.remove('active');
-    aboutModal.classList.add('active');
-    aboutClicks=0;
-}
-function closeAboutModal(){aboutModal.classList.remove('active');goBack()}
-function closeAboutEditModalAndGoBack(){aboutEditModal.classList.remove('active');goBack()}
-document.getElementById('aboutDisplay')?.addEventListener('click',function(){aboutClicks++;if(aboutClickTm)clearTimeout(aboutClickTm);if(aboutClicks===3){aboutClicks=0;openAboutEditModal()}else{aboutClickTm=setTimeout(()=>{aboutClicks=0},600)}});
-function openAboutEditModal(){pushState('aboutEdit');aboutModal.classList.remove('active');let current = localStorage.getItem('financepro_aboutInfo') || '© N.L.R.F\nDESENVOLVEDOR\nideiasesolucoes.nlrf@gmail.com\n\nVersão 2.00 | 2026';document.getElementById('aboutEditText').value=current;aboutEditModal.classList.add('active')}
-function saveAboutInfo(e){e.preventDefault();let newInfo=document.getElementById('aboutEditText').value.trim();if(!newInfo) newInfo='© N.L.R.F\nDESENVOLVEDOR\nideiasesolucoes.nlrf@gmail.com\n\nVersão 2.00 | 2026';localStorage.setItem('financepro_aboutInfo',newInfo);closeAboutEditModalAndGoBack();aboutModal.classList.add('active');showNotification('Informações salvas');}
-
-function save(){localStorage.setItem('financepro_expenses',JSON.stringify(expenses))}
-function fmt(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v)}
-function status(exp){return getExpenseStatus(exp);}
-function showConfirm(opts){pushState('confirm');confirmIconCircle.textContent=opts.icon||'🗑️';confirmTitle.textContent=opts.title;confirmSubtitle.textContent=opts.subtitle||'';confirmMsgIcon.textContent=opts.msgIcon||'⚠️';confirmMsg.textContent=opts.msg;let ac=confirmActions;ac.innerHTML='';opts.actions.forEach(a=>{let b=document.createElement('button');b.className=`confirm-btn ${a.cls||'cancel'}`;b.textContent=a.text;b.onclick=()=>{closeConfirm();if(a.cb)a.cb();goBack()};ac.appendChild(b)});confirmDialog.classList.add('active')}
-function closeConfirm(){confirmDialog.classList.remove('active')}
-function update(){let m=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];monthDisplay.textContent=`${m[cur.getMonth()]} ${cur.getFullYear()}`;updateExpenses();updateSummary()}
-function togglePaidList(id,e){
-    e.stopPropagation();
-    let exp = expenses.find(x=>x.id===id);
-    if(exp){
-        exp.paid = !exp.paid;
-        save();
-        update();
-        showNotification(exp.paid ? 'Gasto marcado como pago' : 'Pagamento desmarcado');
-    }
-}
-function openEditModal(id,e){e.stopPropagation();let exp=expenses.find(x=>x.id===id);if(!exp||exp.type!=='one-time')return;pushState('edit');let f=expenses.find(x=>x.id===id);if(!f)return;editId.value=f.id;editName.value=f.name;editValue.value=f.value;editDate.value=f.date;editModal.classList.add('active');update()}
-function saveEdit(e){e.preventDefault();let id=parseInt(editId.value);let exp=expenses.find(x=>x.id===id);if(!exp){closeEditModalAndGoBack();update();return}exp.name=editName.value.trim();exp.value=parseFloat(editValue.value);exp.date=editDate.value;save();closeEditModalAndGoBack();update();showNotification('Gasto editado com sucesso')}
-function closeEditModalAndGoBack(){editModal.classList.remove('active');editForm.reset();goBack()}
-function updateExpenses(){
-    let y=cur.getFullYear(),m=cur.getMonth();
-    let f=expenses.filter(e=>{
-        let d=new Date(e.date+'T00:00:00');
-        return d.getFullYear()===y && d.getMonth()===m
-    });
-    if(activeFilter==='paid') f=f.filter(e=>e.paid);
-    else if(activeFilter==='pending') f=f.filter(e=>!e.paid);
-    f.sort((a,b)=>new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
-    
-    if(f.length===0){
-        let msg='Nenhum gasto este mês';
-        if(activeFilter==='paid') msg='Nenhum gasto pago';
-        else if(activeFilter==='pending') msg='Nenhum gasto pendente';
-        expensesList.innerHTML=`<div class="empty-state">${msg}<br><span style="font-size:12px;opacity:0.6">Toque em + para adicionar</span></div>`;
-        return;
+        }
     }
     
-    expensesList.innerHTML=f.map(exp=>{
-        let ed=new Date(exp.date+'T00:00:00');
-        let st = getExpenseStatus(exp);
-        let badge='';
-        if(exp.type==='fixed') badge='<span class="badge badge-fixed">FIXO</span>';
-        else if(exp.type==='installment') badge=`<span class="badge badge-inst">${exp.installmentNumber||'?'}/${exp.totalInstallments||'?'}</span>`;
-        
-        let statusClass = '';
-        if(st === 'paid') statusClass = 'paid';
-        else if(st === 'due-today') statusClass = 'due-today';
-        else if(st === 'overdue') statusClass = 'overdue';
-        
-        return `<div class="expense-item ${statusClass}" onclick="event.stopPropagation();openDetailScreen(${exp.id})">
-            <div class="expense-header">
-                <div class="expense-info">
-                    <div class="expense-name">${escapeHtml(exp.name)}${badge}</div>
-                    <div class="expense-date">Venc: ${ed.toLocaleDateString('pt-BR')}</div>
-                </div>
-                <div class="expense-amount">${fmt(exp.value)}</div>
-                <div class="expense-check" onclick="event.stopPropagation();togglePaidList(${exp.id},event)">${exp.paid?'✓':(st==='due-today'?'!':(st==='overdue'?'!':''))}</div>
-            </div>
+    function startDetailDesc(id){
+        let exp = expenses.find(x=>x.id===id);
+        if(!exp) return;
+        let current = exp.description || '';
+        detailDescArea.innerHTML = `<div class="detail-desc-edit-area">
+            <textarea class="detail-desc-textarea" id="detailDescTA-${id}" rows="4">${escapeHtml(current)}</textarea>
+            <button class="detail-desc-save-btn" onclick="event.stopPropagation();saveDetailDescAndClose(${id})">✓</button>
         </div>`;
-    }).join('');
-    updateSummary();
-}
-function escapeHtml(str){return str.replace(/[&<>]/g,function(m){if(m==='&')return '&amp;';if(m==='<')return '&lt;';if(m==='>')return '&gt;';return m;})}
-function updateSummary(){let y=cur.getFullYear(),m=cur.getMonth(),me=expenses.filter(e=>{let d=new Date(e.date+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m});totalGastos.textContent=fmt(me.reduce((s,e)=>s+e.value,0));totalPago.textContent=fmt(me.filter(e=>e.paid).reduce((s,e)=>s+e.value,0));totalPendente.textContent=fmt(me.reduce((s,e)=>s+e.value,0)-me.filter(e=>e.paid).reduce((s,e)=>s+e.value,0))}
-function openAddModal(){pushState('add');addModal.classList.add('active');expenseDate.value=new Date().toISOString().split('T')[0];resetAdd()}
-function closeAddModalAndGoBack(){addModal.classList.remove('active');resetAdd();goBack()}
-function closeAddModal(){addModal.classList.remove('active');resetAdd()}
-
-addModal.addEventListener('click',function(e){if(e.target===this){closeAddModalAndGoBack()}});
-editModal.addEventListener('click',function(e){if(e.target===this){closeEditModalAndGoBack()}});
-confirmDialog.addEventListener('click',function(e){if(e.target===this){closeConfirm();goBack()}});
-aboutModal.addEventListener('click',function(e){if(e.target===this){closeAboutModal();goBack()}});
-aboutEditModal.addEventListener('click',function(e){if(e.target===this){closeAboutEditModalAndGoBack()}});
-dateLimitModal.addEventListener('click',function(e){if(e.target===this){closeDateLimitModal();goBack();currentFixedGasto=null}});
-
-setupMonthSwipe();
-update();
+        let ta = document.getElementById('detailDescTA-'+id);
+        setTimeout(()=>{
+            ta.focus();
+            ta.setSelectionRange(ta.value.length, ta.value.length);
+        },100);
+    }
+    
+    function saveDetailDescAndClose(id){
+        let ta = document.getElementById('detailDescTA-'+id);
+        let val = ta ? ta.value.trim() : '';
+        let exp = expenses.find(x=>x.id===id);
+        if(exp){
+            exp.description = val;
+            save();
+            if(val){
+                detailDescArea.innerHTML = `<div class="detail-desc-display" onclick="event.stopPropagation();startDetailDesc(${id})">${escapeHtml(val)}</div>`;
+            } else {
+                detailDescArea.innerHTML = `<div class="detail-desc-display empty" onclick="event.stopPropagation();startDetailDesc(${id})">Toque para adicionar descrição</div>`;
+            }
+            showNotification('Descrição salva');
+            setTimeout(() => {
+                closeDetailAndGoBack();
+            }, 500);
+        }
+    }
+    
+    function openEditFromDetail(id){
+        let exp = expenses.find(x=>x.id===id);
+        if(!exp || exp.type!=='one-time') return;
+        pushState('edit');
+        detailScreen.classList.remove('active');
+        let f = expenses.find(x=>x.id===id);
+        if(!f) return;
+        editId.value = f.id;
+        editName.value = f.name;
+        editValue.value = f.value;
+        editDate.value = f.date;
+        editModal.classList.add('active');
+        update();
+    }
+    
+    function delFromDetail(id){
+        let exp = expenses.find(x=>x.id===id);
+        if(!exp) return;
+        if(exp.type==='fixed' || exp.type==='installment'){
+            let tl = exp.type==='fixed' ? 'Fixo' : 'Parcelado';
+            showConfirm({
+                icon:'🗑️',
+                title:`Excluir Gasto ${tl}`,
+                subtitle:`"${exp.name}"`,
+                msgIcon:'',
+                msg:`"${exp.name}" é um gasto ${tl.toLowerCase()} mensal.`,
+                actions:[
+                    {text:'Cancelar', cls:'cancel', cb:()=>{}},
+                    {text:'Excluir apenas este mês', cls:'secondary', cb:()=>{
+                        expenses = expenses.filter(x=>x.id!==id);
+                        save();
+                        closeDetailAndGoBack();
+                        update();
+                        showNotification('Gasto removido (apenas este mês)');
+                    }},
+                    {text:'Excluir este mês e os próximos', cls:'secondary', cb:()=>{
+                        let ce = expenses.find(x=>x.id===id);
+                        if(!ce) return;
+                        let cd = new Date(ce.date + 'T00:00:00');
+                        expenses = expenses.filter(x=>{
+                            if(x.type===ce.type && x.name===ce.name){
+                                let xd = new Date(x.date + 'T00:00:00');
+                                return xd < cd;
+                            }
+                            return true;
+                        });
+                        save();
+                        closeDetailAndGoBack();
+                        update();
+                        showNotification('Gastos futuros removidos');
+                    }},
+                    {text:'Excluir todos os meses', cls:'danger', cb:()=>{
+                        expenses = expenses.filter(x=>!((x.type==='fixed' || x.type==='installment') && x.name===exp.name));
+                        save();
+                        closeDetailAndGoBack();
+                        update();
+                        showNotification('Todos os gastos removidos');
+                    }}
+                ]
+            });
+        } else {
+            showConfirm({
+                icon:'🗑️',
+                title:'Excluir Gasto',
+                subtitle:`"${exp.name}"`,
+                msgIcon:'',
+                msg:`Excluir "${exp.name}"?`,
+                actions:[
+                    {text:'Cancelar', cls:'cancel', cb:()=>{}},
+                    {text:'Sim, excluir', cls:'danger', cb:()=>{
+                        expenses = expenses.filter(x=>x.id!==id);
+                        save();
+                        closeDetailAndGoBack();
+                        update();
+                        showNotification('Gasto removido');
+                    }}
+                ]
+            });
+        }
+    }
+    
+    document.getElementById('detailBackBtn').onclick = function() {
+        closeDetailAndGoBack();
+    };
+    
+    detailScreen.addEventListener('click', function(e) {
+        if(e.target === detailScreen || e.target.classList.contains('detail-screen')) {
+            closeDetailAndGoBack();
+        }
+    });
+    
+    let clicks=0,clickTm=null;
+    const appTitleDiv = document.getElementById('appTitle');
+    const appTitleSpan = document.getElementById('appTitleText');
+    appTitleDiv.addEventListener('click',function(e){if(this.classList.contains('editing'))return;clicks++;if(clickTm)clearTimeout(clickTm);if(clicks===3){clicks=0;startEditTitle()}else{clickTm=setTimeout(()=>{clicks=0},500)}});
+    function startEditTitle(){
+        let t=appTitleDiv;
+        let txSpan=appTitleSpan;
+        t.classList.add('editing');
+        let inp=document.createElement('input');
+        inp.type='text';
+        inp.className='app-title-input';
+        inp.value=txSpan.textContent;
+        inp.id='titleInp';
+        txSpan.style.display='none';
+        t.appendChild(inp);
+        inp.focus();
+        inp.select();
+        inp.addEventListener('blur',saveTitle);
+        inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveTitle();if(e.key==='Escape')cancelTitle()});
+    }
+    function saveTitle(){
+        let inp=document.getElementById('titleInp');
+        if(!inp)return;
+        let newTitle = inp.value.trim().toUpperCase() || 'MINHAS DESPESAS';
+        appName = newTitle;
+        localStorage.setItem('financepro_appName',appName);
+        appTitleSpan.textContent=appName;
+        cancelTitle();
+        showNotification('Título alterado');
+    }
+    function cancelTitle(){
+        appTitleSpan.style.display='';
+        appTitleDiv.classList.remove('editing');
+        let inp=document.getElementById('titleInp');
+        if(inp)inp.remove();
+    }
+    
+    function toggleSettingsMenu(e){
+        e.stopPropagation();
+        let m=settingsMenu;
+        let ts=themeSubmenu;
+        if(m.classList.contains('active')){
+            m.classList.remove('active');
+            ts.classList.remove('active');
+        } else {
+            m.classList.add('active');
+        }
+    }
+    function toggleThemeSubmenu(e){
+        e.stopPropagation();
+        themeSubmenu.classList.toggle('active');
+        updateThemeUI();
+    }
+    function setTheme(t){
+        document.documentElement.setAttribute('data-theme',t);
+        localStorage.setItem('financepro_theme',t);
+        theme=t;
+        updateThemeUI();
+        closeAll();
+        nav=['home'];
+        showNotification(`Tema alterado para ${t==='light'?'Claro':'Escuro'}`);
+    }
+    function updateThemeUI(){
+        document.querySelectorAll('.theme-option').forEach(b=>b.classList.toggle('active',b.dataset.theme===theme));
+        let dot=document.getElementById('themeSubDot'),name=document.getElementById('themeSubName');
+        if(dot&&name){
+            dot.className='theme-sub-header-dot '+(theme==='light'?'light':'dark');
+            name.textContent=theme==='light'?'Claro':'Escuro';
+        }
+    }
+    
+    let aboutClicks=0,aboutClickTm=null;
+    function openAboutModal(){
+        pushState('about');
+        settingsMenu.classList.remove('active');
+        themeSubmenu.classList.remove('active');
+        aboutModal.classList.add('active');
+        aboutClicks=0;
+    }
+    function closeAboutModal(){aboutModal.classList.remove('active');goBack()}
+    function closeAboutEditModalAndGoBack(){aboutEditModal.classList.remove('active');goBack()}
+    function openAboutEditModal(){pushState('aboutEdit');aboutModal.classList.remove('active');let current = localStorage.getItem('financepro_aboutInfo') || '© N.L.R.F\nDESENVOLVEDOR\nideiasesolucoes.nlrf@gmail.com\n\nVersão 2.00 | 2026';document.getElementById('aboutEditText').value=current;aboutEditModal.classList.add('active')}
+    function saveAboutInfo(e){e.preventDefault();let newInfo=document.getElementById('aboutEditText').value.trim();if(!newInfo) newInfo='© N.L.R.F\nDESENVOLVEDOR\nideiasesolucoes.nlrf@gmail.com\n\nVersão 2.00 | 2026';localStorage.setItem('financepro_aboutInfo',newInfo);closeAboutEditModalAndGoBack();aboutModal.classList.add('active');showNotification('Informações salvas');}
+    
+    function save(){localStorage.setItem('financepro_expenses',JSON.stringify(expenses))}
+    function fmt(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v)}
+    function status(exp){return getExpenseStatus(exp);}
+    function showConfirm(opts){pushState('confirm');confirmIconCircle.textContent=opts.icon||'🗑️';confirmTitle.textContent=opts.title;confirmSubtitle.textContent=opts.subtitle||'';confirmMsgIcon.textContent=opts.msgIcon||'⚠️';confirmMsg.textContent=opts.msg;let ac=confirmActions;ac.innerHTML='';opts.actions.forEach(a=>{let b=document.createElement('button');b.className=`confirm-btn ${a.cls||'cancel'}`;b.textContent=a.text;b.onclick=()=>{closeConfirm();if(a.cb)a.cb();goBack()};ac.appendChild(b)});confirmDialog.classList.add('active')}
+    function closeConfirm(){confirmDialog.classList.remove('active')}
+    function update(){let m=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];monthDisplay.textContent=`${m[cur.getMonth()]} ${cur.getFullYear()}`;updateExpenses();updateSummary()}
+    function togglePaidList(id,e){
+        e.stopPropagation();
+        let exp = expenses.find(x=>x.id===id);
+        if(exp){
+            exp.paid = !exp.paid;
+            save();
+            update();
+            showNotification(exp.paid ? 'Gasto marcado como pago' : 'Pagamento desmarcado');
+        }
+    }
+    function openEditModal(id,e){e.stopPropagation();let exp=expenses.find(x=>x.id===id);if(!exp||exp.type!=='one-time')return;pushState('edit');let f=expenses.find(x=>x.id===id);if(!f)return;editId.value=f.id;editName.value=f.name;editValue.value=f.value;editDate.value=f.date;editModal.classList.add('active');update()}
+    function saveEdit(e){e.preventDefault();let id=parseInt(editId.value);let exp=expenses.find(x=>x.id===id);if(!exp){closeEditModalAndGoBack();update();return}exp.name=editName.value.trim();exp.value=parseFloat(editValue.value);exp.date=editDate.value;save();closeEditModalAndGoBack();update();showNotification('Gasto editado com sucesso')}
+    function closeEditModalAndGoBack(){editModal.classList.remove('active');editForm.reset();goBack()}
+    function updateExpenses(){
+        let y=cur.getFullYear(),m=cur.getMonth();
+        let f=expenses.filter(e=>{
+            let d=new Date(e.date+'T00:00:00');
+            return d.getFullYear()===y && d.getMonth()===m
+        });
+        if(activeFilter==='paid') f=f.filter(e=>e.paid);
+        else if(activeFilter==='pending') f=f.filter(e=>!e.paid);
+        f.sort((a,b)=>new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
+        
+        if(f.length===0){
+            let msg='Nenhum gasto este mês';
+            if(activeFilter==='paid') msg='Nenhum gasto pago';
+            else if(activeFilter==='pending') msg='Nenhum gasto pendente';
+            expensesList.innerHTML=`<div class="empty-state">${msg}<br><span style="font-size:12px;opacity:0.6">Toque em + para adicionar</span></div>`;
+            return;
+        }
+        
+        expensesList.innerHTML=f.map(exp=>{
+            let ed=new Date(exp.date+'T00:00:00');
+            let st = getExpenseStatus(exp);
+            let badge='';
+            if(exp.type==='fixed') badge='<span class="badge badge-fixed">FIXO</span>';
+            else if(exp.type==='installment') badge=`<span class="badge badge-inst">${exp.installmentNumber||'?'}/${exp.totalInstallments||'?'}</span>`;
+            
+            let statusClass = '';
+            if(st === 'paid') statusClass = 'paid';
+            else if(st === 'due-today') statusClass = 'due-today';
+            else if(st === 'overdue') statusClass = 'overdue';
+            
+            return `<div class="expense-item ${statusClass}" onclick="event.stopPropagation();openDetailScreen(${exp.id})">
+                <div class="expense-header">
+                    <div class="expense-info">
+                        <div class="expense-name">${escapeHtml(exp.name)}${badge}</div>
+                        <div class="expense-date">Venc: ${ed.toLocaleDateString('pt-BR')}</div>
+                    </div>
+                    <div class="expense-amount">${fmt(exp.value)}</div>
+                    <div class="expense-check" onclick="event.stopPropagation();togglePaidList(${exp.id},event)">${exp.paid?'✓':(st==='due-today'?'!':(st==='overdue'?'!':''))}</div>
+                </div>
+            </div>`;
+        }).join('');
+        updateSummary();
+    }
+    function escapeHtml(str){return str.replace(/[&<>]/g,function(m){if(m==='&')return '&amp;';if(m==='<')return '&lt;';if(m==='>')return '&gt;';return m;})}
+    function updateSummary(){let y=cur.getFullYear(),m=cur.getMonth(),me=expenses.filter(e=>{let d=new Date(e.date+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m});totalGastos.textContent=fmt(me.reduce((s,e)=>s+e.value,0));totalPago.textContent=fmt(me.filter(e=>e.paid).reduce((s,e)=>s+e.value,0));totalPendente.textContent=fmt(me.reduce((s,e)=>s+e.value,0)-me.filter(e=>e.paid).reduce((s,e)=>s+e.value,0))}
+    function openAddModal(){pushState('add');addModal.classList.add('active');expenseDate.value=new Date().toISOString().split('T')[0];resetAdd()}
+    function closeAddModalAndGoBack(){addModal.classList.remove('active');resetAdd();goBack()}
+    function closeAddModal(){addModal.classList.remove('active');resetAdd()}
+    
+    addModal.addEventListener('click',function(e){if(e.target===this){closeAddModalAndGoBack()}});
+    editModal.addEventListener('click',function(e){if(e.target===this){closeEditModalAndGoBack()}});
+    confirmDialog.addEventListener('click',function(e){if(e.target===this){closeConfirm();goBack()}});
+    aboutModal.addEventListener('click',function(e){if(e.target===this){closeAboutModal();goBack()}});
+    aboutEditModal.addEventListener('click',function(e){if(e.target===this){closeAboutEditModalAndGoBack()}});
+    dateLimitModal.addEventListener('click',function(e){if(e.target===this){closeDateLimitModal();goBack();currentFixedGasto=null}});
+    
+    setupMonthSwipe();
+    update();
 </script>
 </body>
 </html>
