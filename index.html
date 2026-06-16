@@ -67,17 +67,29 @@
         }
         
         .offline-banner {
-            background: #F59E0B;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: rgba(245, 158, 11, 0.92);
             color: #fff;
             text-align: center;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px;
-            letter-spacing: 0.5px;
-            display: none;
+            font-size: 10px;
+            font-weight: 500;
+            padding: 3px 0;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            backdrop-filter: blur(4px);
+            transform: translateY(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .offline-banner.active {
-            display: block;
+            transform: translateY(0);
+        }
+        [data-theme="dark"] .offline-banner {
+            background: rgba(245, 158, 11, 0.88);
         }
         
         .professional-header {
@@ -1078,7 +1090,7 @@
 </head>
 <body>
     <div class="app" id="appContainer">
-        <div class="offline-banner" id="offlineBanner">⚠️ Modo Offline</div>
+        <div class="offline-banner" id="offlineBanner">● Modo Off-line</div>
         
         <div class="professional-header">
             <div class="header-container">
